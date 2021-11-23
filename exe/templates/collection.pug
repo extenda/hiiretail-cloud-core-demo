@@ -1,0 +1,28 @@
+doctype html
+html(lang="en")
+    head
+        title Main Page
+        link(rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous")
+    body
+        h1=name
+        table(class="table text-break")
+            thead
+                tr
+                    th(scope="col") id
+                    th(scope="col") body
+                    th(scope="col") headers
+                    th(scope="col") token
+                    th(scope="col") createdAt
+                    th(scope="col") signatureCorrect
+            tbody
+                each item in collection
+                    tr
+                        th(scope="row")=item.id
+                        td(style="max-width: 600px; width: 600px;")
+                            pre(style="word-wrap: break-word; white-space: pre-wrap;")=JSON.stringify(item.body, null, 2)
+                        td(style="max-width: 600px; width: 600px")
+                            pre(style="word-wrap: break-word; white-space: pre-wrap;")=JSON.stringify(item.headers, null, 2)
+                        td(style="max-width: 600px; width: 600px")
+                            pre(style="word-wrap: break-word; white-space: pre-wrap;")=JSON.stringify(item.token, null, 2)
+                        td=item.createdAt
+                        td=item.signatureCorrect

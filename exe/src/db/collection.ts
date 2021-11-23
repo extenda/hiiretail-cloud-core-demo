@@ -1,30 +1,31 @@
+import { db } from './json-db';
+
 export class Collection<T extends { id: string }> {
-  private data: Record<string, T> = {};
+
+  constructor(private name: string) {}
 
   async save(item: T): Promise<T> {
-    this.data[item.id] = item;
+    db.push(`/${this.name}[]`, item)
     return item;
   }
 
   async getAll(): Promise<T[]> {
-    return Object.values(this.data);
-  }
-
-  async getById(id: string): Promise<T | undefined> {
-    return this.data[id];
+    return db.getObject(`/${this.name}`) || [];
   }
 
   async findOne(filter: (item: T) => boolean): Promise<T | undefined> {
-    return Object.values(this.data).find(filter);
+    return db.find<T>(`/${this.name}[]`, filter);
+  }
+
+  async findById(id: string): Promise<T | undefined> {
+    return db.find<T>(`/${this.name}[]`,(value) => value.id === id);
   }
 
   async findMany(filter: (item: T) => boolean): Promise<T[]> {
-    return Object.values(this.data).filter(filter);
+    return db.filter<T>(`/${this.name}[]`, filter) || [];
   }
 
-  async delete(id: string): Promise<T> {
-    const item = this.data[id];
-    delete this.data[id];
-    return item;
+  async delete(id: string): Promise<void> {
+    return db.push(this.name, await this.findMany((value) => value.id === id), true);
   }
 }

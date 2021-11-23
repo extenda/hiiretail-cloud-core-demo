@@ -1,0 +1,9 @@
+doctype html
+html(lang="en")
+    head
+        title Main Page
+    body
+        h1 Collections
+        each collection in collections
+            h2
+                a(href=`${url}/collections/${collection}`)=collection
