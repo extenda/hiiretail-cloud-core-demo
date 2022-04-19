@@ -1,4 +1,4 @@
-import { deflate } from "https://deno.land/x/denoflate@1.2.1/mod.ts";
+import { deflate } from "https://deno.land/x/pako@v2.0.3/pako.js";
 import { publishTransaction } from "./api.ts";
 
 import { TESTRUNNER_TENANT_ID, TOKEN } from "./constants.ts";
@@ -24,7 +24,7 @@ export async function sendTransaction(
   const transaction = exampleTransaction
     .replace("[[[BUSINESS_UNIT_ID]]]", businessUnitId)
     .replace("[[[TRANSACTION_ID]]]", transactionId);
-  const data = deflate(new TextEncoder().encode(transaction), 1);
+  const data = deflate(new TextEncoder().encode(transaction))!;
 
   await publishTransaction(data, {
     ...DEFAULT_HEADERS,
