@@ -13,13 +13,13 @@ Features:
 To listen for external events:
 
 ```bash
-deno run --allow-all external-events.ts
+deno task listen
 ```
 
 To publish transactions:
 
 ```bash
-deno run --allow-all publish.ts
+deno task publish
 ```
 
 ## Prerequisites
