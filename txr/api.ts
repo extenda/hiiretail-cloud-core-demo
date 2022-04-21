@@ -1,7 +1,7 @@
 import { TOKEN } from "./constants.ts";
 
-const INPUT_API_URL = "https://txr-input.retailsvc.dev/api/v1";
-const SEARCH_API_URL = "https://txr-search.retailsvc.dev/api/v1";
+const INPUT_API_URL = "https://txr-input.retailsvc.com/api/v1";
+const SEARCH_API_URL = "https://txr-search.retailsvc.com/api/v1";
 
 export async function publishTransaction(
   payload: Uint8Array,

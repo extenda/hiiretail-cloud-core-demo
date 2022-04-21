@@ -9,13 +9,19 @@ function processExternalEvent(
       console.log("Received ping event:", JSON.parse(atob(body.data)));
       break;
     }
+    case "txr.transactions.v1":
     case "txr.transactions-staging.v1": {
       console.log("Received transaction");
       break;
     }
+    case "txr.sequence-gaps.v1":
     case "txr.sequence-gaps-staging.v1": {
       const data = JSON.parse(atob(body.data));
       console.log("Received sequence gap:", data);
+      break;
+    }
+    default: {
+      console.log("received unknown event:", body.type);
       break;
     }
   }
