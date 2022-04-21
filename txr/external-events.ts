@@ -1,48 +1,46 @@
-const port = 8080;
-const server = Deno.listen({ port });
-console.log(
-  `Listening for external events at: http://localhost:${port}/events`,
-);
+import { serve } from "https://deno.land/std@0.136.0/http/server.ts";
 
 function processExternalEvent(
   body: { data: string; type: string },
-  headers: Record<string, string>,
+  _headers: Record<string, string>,
 ) {
   switch (body.type) {
     case "exe.events.v1": {
       console.log("Received ping event:", JSON.parse(atob(body.data)));
       break;
     }
-    case "txr.transactions.v1": {
+    case "txr.transactions-staging.v1": {
       console.log("Received transaction");
       break;
     }
-    case "txr.sequencegaps.v1": {
+    case "txr.sequence-gaps-staging.v1": {
       const data = JSON.parse(atob(body.data));
-      console.log("Received sequence gap:", { data, body, headers });
+      console.log("Received sequence gap:", data);
       break;
     }
   }
 }
 
-for await (const conn of server) {
-  for await (const req of Deno.serveHttp(conn)) {
-    const method = req.request.method;
-    const path = new URL(req.request.url).pathname;
+const port = 8080;
+console.log(
+  `Listening for external events at: http://localhost:${port}/events`,
+);
+await serve(async (request) => {
+  const method = request.method;
+  const path = new URL(request.url).pathname;
 
-    console.log(method, path);
+  console.log(method, path);
 
-    if (method === "POST" && path === "/events") {
-      try {
-        const headers = Object.fromEntries(req.request.headers.entries());
-        const body = await req.request.json();
+  if (method === "POST" && path === "/events") {
+    try {
+      const headers = Object.fromEntries(request.headers.entries());
+      const body = await request.json();
 
-        processExternalEvent(body, headers);
-      } catch (_ignored) {
-        console.error(`Received invalid event.`);
-      }
+      processExternalEvent(body, headers);
+    } catch (_ignored) {
+      console.error(`Received invalid event.`);
     }
-
-    req.respondWith(new Response("OK", { status: 200 }));
   }
-}
+
+  return new Response("OK", { status: 200 });
+}, { port });
