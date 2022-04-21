@@ -10,18 +10,18 @@ Features:
 
 ## Usage
 
-To listen for external events:
+Create a file called `token.jwt` and paste your token there.
 
+Use the following commands:
 ```bash
-deno task listen
-```
-
-To publish transactions:
-
-```bash
-deno task publish
+deno task listen     # listen for external events (transactions + gaps)
+deno task publish    # publish transaction
+deno task find-by-id # find transaction by id
+deno task seach      # find transactions by business-unit-id
 ```
 
 ## Prerequisites
 
 This demo uses [Deno runtime](https://deno.land/).
+
+You can setup a working environment using [GitPod](https://www.gitpod.io/).
