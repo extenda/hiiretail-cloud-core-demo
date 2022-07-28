@@ -3,6 +3,7 @@
     "listen": "deno run --allow-net external-events.ts",
     "publish": "deno run --allow-net --allow-read publish.ts",
     "find-by-id": "deno run --allow-net --allow-read find-by-id.ts",
-    "search": "deno run --allow-net --allow-read search.ts"
+    "search": "deno run --allow-net --allow-read search.ts",
+    "ingest-many": "deno run --allow-read --no-check=remote --allow-net ingest-many/ingest-many.ts",
   }
 }
