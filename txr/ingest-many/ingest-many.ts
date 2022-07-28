@@ -15,7 +15,7 @@ for await (const transaction of transactions) {
   const file = await Deno.readTextFile(`${transactionDir}/${transaction.name}`);
   const document = new DOMParser().parseFromString(file, 'text/xml');
   const now = new Date();
-  const nowStr = format(now, 'yyyy-MM-ddHH:mm:ss')
+  const nowStr = format(now, 'yyyy-MM-ddTHH:mm:ss')
 
   const bu = document.getElementsByTagName('BusinessUnit')[0].getElementsByTagName('UnitID')[0];
   bu.setAttribute('Name', config.businessUnitId || bu.getAttribute('Name'))
@@ -37,8 +37,14 @@ for await (const transaction of transactions) {
   const receiptNumber = rn.innerHTML;
 
   const tid = document.getElementsByTagName('TransactionID')[0];
-  tid.innerHTML = `${businessUnit};${workstation};${sequenceNumber};${nowStr};${receiptNumber}`;
+  tid.innerHTML = `${businessUnit};${workstation};${sequenceNumber};${nowStr.replace('T', '')};${receiptNumber}`;
   const transactionId = tid.innerHTML;
+
+  const beginDate = document.getElementsByTagName('BeginDateTime')[0];
+  beginDate.innerHTML = nowStr
+
+  const endDate = document.getElementsByTagName('EndDateTime')[0];
+  endDate.innerHTML = nowStr;
 
   const data = zip(new TextEncoder().encode(document.toString()))!;
 
