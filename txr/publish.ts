@@ -15,7 +15,7 @@ const transaction = exampleTransaction
 const data = zip(new TextEncoder().encode(transaction))!;
 
 await publishTransaction(data, {
-  "transaction-timestamp": "2022-08-09T00:00:00.000Z",
+  "transaction-timestamp": new Date().toISOString(),
   "country-code": "US",
   "content-type": "application/zip",
   "correlation-id": crypto.randomUUID(),

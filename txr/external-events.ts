@@ -21,7 +21,7 @@ function processExternalEvent(
       break;
     }
     default: {
-      console.log("received unknown event:", body.type);
+      console.log("received unknown event:", body.type, atob(body.data));
       break;
     }
   }
