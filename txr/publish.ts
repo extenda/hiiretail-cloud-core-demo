@@ -16,7 +16,7 @@ const data = zip(new TextEncoder().encode(transaction))!;
 
 await publishTransaction(data, {
   "transaction-timestamp": new Date().toISOString(),
-  "country-code": "US",
+  "country-code": "NO",
   "content-type": "application/zip",
   "correlation-id": crypto.randomUUID(),
   "tenant-id": TESTRUNNER_TENANT_ID,
