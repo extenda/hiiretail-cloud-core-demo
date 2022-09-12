@@ -45,6 +45,7 @@ export async function getTransactionById(
 
 export async function searchTransactions(
   filter: Record<string, unknown>,
+  page?: { skip: number, take: number },
 ): Promise<{
   results: { transactionId: string }[];
   page: {
@@ -55,7 +56,7 @@ export async function searchTransactions(
   };
 }> {
   const res = await fetch(
-    SEARCH_API_URL + "/transactions:search?skip=0&take=100",
+    SEARCH_API_URL + `/transactions:search?skip=${page?.skip || 0}&take=${page?.take || 100}`,
     {
       method: "POST",
       headers: {

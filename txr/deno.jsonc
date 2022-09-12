@@ -5,5 +5,6 @@
     "find-by-id": "deno run --allow-net --allow-read find-by-id.ts",
     "search": "deno run --allow-net --allow-read search.ts",
     "ingest-many": "deno run --allow-read --no-check=remote --allow-net ingest-many/ingest-many.ts",
+    "search-and-download": "deno run --allow-read --no-check=remote --allow-net --allow-write search-and-download.ts"
   }
 }
