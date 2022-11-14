@@ -1,7 +1,4 @@
-import { TOKEN } from "./constants.ts";
-
-const INPUT_API_URL = "https://txr-input.retailsvc.com/api/v1";
-const SEARCH_API_URL = "https://txr-search.retailsvc.com/api/v1";
+import { INPUT_API_URL, SEARCH_API_URL, TOKEN } from "./constants.ts";
 
 export async function publishTransaction(
   payload: Uint8Array,
@@ -13,6 +10,7 @@ export async function publishTransaction(
       method: "POST",
       headers: {
         "Authorization": `Bearer ${TOKEN}`,
+        "Ignore-Domain-Check": "true",
         ...headers,
       },
       body: payload,
@@ -30,7 +28,10 @@ export async function getTransactionById(
   const res = await fetch(
     SEARCH_API_URL + `/transactions/${transactionId}`,
     {
-      headers: { "Authorization": `Bearer ${TOKEN}` },
+      headers: {
+        "Authorization": `Bearer ${TOKEN}`,
+        "Ignore-Domain-Check": "true",
+      },
     },
   );
 
@@ -45,7 +46,7 @@ export async function getTransactionById(
 
 export async function searchTransactions(
   filter: Record<string, unknown>,
-  page?: { skip: number, take: number },
+  page?: { skip: number; take: number },
 ): Promise<{
   results: { transactionId: string }[];
   page: {
@@ -56,12 +57,14 @@ export async function searchTransactions(
   };
 }> {
   const res = await fetch(
-    SEARCH_API_URL + `/transactions:search?skip=${page?.skip || 0}&take=${page?.take || 100}`,
+    SEARCH_API_URL +
+      `/transactions:search?skip=${page?.skip || 0}&take=${page?.take || 100}`,
     {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${TOKEN}`,
         "Content-Type": "application/json",
+        "Ignore-Domain-Check": "true",
       },
       body: JSON.stringify(filter),
     },

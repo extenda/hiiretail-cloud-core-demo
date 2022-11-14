@@ -1,6 +1,6 @@
 import { publishTransaction } from "./api.ts";
 
-import { TESTRUNNER_TENANT_ID } from "./constants.ts";
+import { TENANT_ID } from "./constants.ts";
 import { zip } from "./utils.ts";
 
 const exampleTransaction = await Deno.readTextFile("transaction.xml");
@@ -19,7 +19,7 @@ await publishTransaction(data, {
   "country-code": "NO",
   "content-type": "application/zip",
   "correlation-id": crypto.randomUUID(),
-  "tenant-id": TESTRUNNER_TENANT_ID,
+  "tenant-id": TENANT_ID,
   "business-unit-id": businessUnitId,
   "transaction-id": transactionId,
   "previous-transaction-id": previousTransactionId,
