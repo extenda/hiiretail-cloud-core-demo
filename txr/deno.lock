@@ -1,0 +1,6 @@
+{
+  "version": "2",
+  "remote": {
+    "https://deno.land/x/pako@v2.0.3/pako.js": "5c4fb94476dea571ba33a6074b4ea25a0508b347c6f453110202ddf4ddbc6991"
+  }
+}
