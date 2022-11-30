@@ -5,6 +5,7 @@ import { zip } from "./utils.ts";
 
 const BATCH_SIZE = 100;
 const EXAMPLE_TRANSACTION = await Deno.readTextFile("transaction.xml");
+const BUSINESS_UNIT_IDS_POOL_SIZE = 10;
 
 console.time("perf-test");
 Deno.addSignalListener("SIGINT", () => {
@@ -15,21 +16,18 @@ Deno.addSignalListener("SIGINT", () => {
 console.log("starting performance test", new Date());
 
 for (let i = 1;; i++) {
-  await Promise.all(
-    Array
-      .from({ length: BATCH_SIZE }, makeTransaction)
-      .map(sendTransaction),
-  );
+  const requestBatch = Array
+    .from({ length: BATCH_SIZE }, makeTransaction)
+    .map(({ data, attributes }) => publishTransaction(data, attributes));
+
+  await Promise.all(requestBatch);
   console.log(`batch #${i} sent`);
 }
 
-// @ts-ignore: too lazy to type
-function sendTransaction({ data, attributes }) {
-  return publishTransaction(data, attributes);
-}
-
 function makeTransaction() {
-  const businessUnitId = crypto.randomUUID();
+  const businessUnitId = `bu-${
+    Math.floor(Math.random() * BUSINESS_UNIT_IDS_POOL_SIZE)
+  }`;
   const previousTransactionId = crypto.randomUUID();
   const transactionId = crypto.randomUUID();
 
