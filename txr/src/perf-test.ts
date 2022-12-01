@@ -9,6 +9,7 @@ const BUSINESS_UNIT_IDS_POOL_SIZE = 10;
 
 console.time("perf-test");
 Deno.addSignalListener("SIGINT", () => {
+  console.log();
   console.timeEnd("perf-test");
   Deno.exit();
 });
@@ -16,12 +17,21 @@ Deno.addSignalListener("SIGINT", () => {
 console.log("starting performance test", new Date());
 
 for (let i = 1;; i++) {
+  print(`Sending batch #${i}: `);
+
   const requestBatch = Array
     .from({ length: BATCH_SIZE }, makeTransaction)
-    .map(({ data, attributes }) => publishTransaction(data, attributes));
+    .map(async ({ data, attributes }) => {
+      try {
+        await publishTransaction(data, attributes);
+      } catch (_ignored) {
+        print("X ");
+      }
+    });
 
   await Promise.all(requestBatch);
-  console.log(`batch #${i} sent`);
+
+  console.log("Done");
 }
 
 function makeTransaction() {
@@ -48,4 +58,8 @@ function makeTransaction() {
   };
 
   return { data, attributes };
+}
+
+function print(chars: string) {
+  Deno.stdout.write(new TextEncoder().encode(chars));
 }
