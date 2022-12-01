@@ -17,21 +17,25 @@ Deno.addSignalListener("SIGINT", () => {
 console.log("starting performance test", new Date());
 
 for (let i = 1;; i++) {
+  let retriesPerBatch = 0;
   print(`Sending batch #${i}: `);
 
   const requestBatch = Array
     .from({ length: BATCH_SIZE }, makeTransaction)
     .map(async ({ data, attributes }) => {
-      try {
-        await publishTransaction(data, attributes);
-      } catch (_ignored) {
-        print("X ");
+      while (true) {
+        try {
+          await publishTransaction(data, attributes);
+          break;
+        } catch (_ignored) {
+          retriesPerBatch++;
+        }
       }
     });
 
   await Promise.all(requestBatch);
 
-  console.log("Done");
+  console.log(`Done, retries: ${retriesPerBatch}`);
 }
 
 function makeTransaction() {
