@@ -20,7 +20,7 @@ const config = {
       strict: true
     }),
     paths: {
-      base: dev ? '' : '/extenda/hiiretail-cloud-core-demo/master/ccc/build',
+      base: dev ? '' : '/extenda/hiiretail-cloud-core-demo/master/ccc',
     }
 	}
 };
