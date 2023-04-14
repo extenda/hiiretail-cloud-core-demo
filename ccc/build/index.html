@@ -2,30 +2,68 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
-		<link rel="icon" href="/extenda/hiiretail-cloud-core-demo/master/ccc/build/favicon.png" />
+		<link rel="icon" href="./build/favicon.png" />
 		<meta name="viewport" content="width=device-width" />
 		<meta http-equiv="content-security-policy" content="">
-		<link rel="modulepreload" href="/extenda/hiiretail-cloud-core-demo/master/ccc/build/_app/immutable/entry/start.55bf1f95.js">
-		<link rel="modulepreload" href="/extenda/hiiretail-cloud-core-demo/master/ccc/build/_app/immutable/chunks/index.019f7634.js">
-		<link rel="modulepreload" href="/extenda/hiiretail-cloud-core-demo/master/ccc/build/_app/immutable/chunks/singletons.c385e4ab.js">
-		<link rel="modulepreload" href="/extenda/hiiretail-cloud-core-demo/master/ccc/build/_app/immutable/entry/app.d3943a06.js">
+		<link href="./build/_app/immutable/assets/_page.327542ec.css" rel="stylesheet">
+		<link rel="modulepreload" href="./build/_app/immutable/entry/start.e022d75f.js">
+		<link rel="modulepreload" href="./build/_app/immutable/chunks/index.2fe4925c.js">
+		<link rel="modulepreload" href="./build/_app/immutable/chunks/singletons.3733aea5.js">
+		<link rel="modulepreload" href="./build/_app/immutable/entry/app.956939c3.js">
+		<link rel="modulepreload" href="./build/_app/immutable/entry/layout.svelte.11aea40c.js">
+		<link rel="modulepreload" href="./build/_app/immutable/entry/_layout.js.984db11e.js">
+		<link rel="modulepreload" href="./build/_app/immutable/chunks/_layout.da46b06b.js">
+		<link rel="modulepreload" href="./build/_app/immutable/entry/_page.svelte.c7b46aec.js">
 	</head>
 	<body data-sveltekit-preload-data="hover">
 		<div style="display: contents">
+
+
+<div style="margin: 4px"><div class="row"><div class="col"><label class="svelte-1g63nco">Token
+    <input placeholder="..." label="Token" class="   " value=""></label></div>
+    <div class="col"><label>Kind
+    <select><option value="ccc.demo-test.v1">ccc.demo-test.v1</option>
+        <option value="che.receipt-layout.v1">che.receipt-layout.v1</option></select></label></div>
+    <div class="col"><label>Target Level
+    <select><option value="Global">Global</option>
+        <option value="Tenant">Tenant</option>
+        <option value="Business Unit">Business Unit</option>
+        <option value="Workstation">Workstation</option></select></label></div>
+    <div class="col"><label class="svelte-1g63nco">Business Unit ID
+    <input placeholder="..." label="Business Unit ID" disabled class="   " value=""></label></div>
+    <div class="col"><label class="svelte-1g63nco">Workstation ID
+    <input placeholder="..." label="Workstation ID" disabled class="   " value=""></label></div></div>
+
+  <div style="margin: 24px"><p>URL: https://ccc-api.retailsvc.com/api/v1/config/ccc.demo-test.v1/values/default</p>
+    <p>Inherited from: &lt;none></p>
+
+    
+      Loading...
+    </div></div>
+
+
+			
 			<script>
 				{
-					__sveltekit_nkn7r1 = {
+					__sveltekit_1l76y72 = {
 						env: {},
 						assets: "/extenda/hiiretail-cloud-core-demo/master/ccc/build",
-						base: "/extenda/hiiretail-cloud-core-demo/master/ccc/build",
+						base: new URL("./build", location).pathname,
 						element: document.currentScript.parentElement
 					};
 
+					const data = [null,null];
+
 					Promise.all([
-						import("/extenda/hiiretail-cloud-core-demo/master/ccc/build/_app/immutable/entry/start.55bf1f95.js"),
-						import("/extenda/hiiretail-cloud-core-demo/master/ccc/build/_app/immutable/entry/app.d3943a06.js")
+						import("./build/_app/immutable/entry/start.e022d75f.js"),
+						import("./build/_app/immutable/entry/app.956939c3.js")
 					]).then(([kit, app]) => {
-						kit.start(app, __sveltekit_nkn7r1.element);
+						kit.start(app, __sveltekit_1l76y72.element, {
+							node_ids: [0, 2],
+							data,
+							form: null,
+							error: null
+						});
 					});
 				}
 			</script>
