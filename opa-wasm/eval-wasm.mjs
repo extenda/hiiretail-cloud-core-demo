@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import opa from "@open-policy-agent/opa-wasm";
 import jsonwebtoken from "jsonwebtoken";
+import jwkToBuffer from "jwk-to-pem";
 
 const policy = await opa.loadPolicy(
   await fs.readFile("out/policy.wasm"),
@@ -41,12 +42,9 @@ function makeCustomBuiltins() {
         let key = cert;
         if (cert.startsWith('{"keys":')) {
           const decoded = jsonwebtoken.decode(jwt, { complete: true });
-          if (decoded === null) {
-            throw new Error("Malformed JWT");
-          }
-
           const { keys } = JSON.parse(cert);
-          key = keys.find((k) => k.kid === decoded.header.kid)?.n;
+          const keyInfo = keys.find((k) => k.kid === decoded?.header.kid);
+          key = jwkToBuffer(keyInfo);
         }
 
         const { header, payload } = jsonwebtoken.verify(jwt, key, {

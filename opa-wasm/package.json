@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "@open-policy-agent/opa-wasm": "^1.8.0",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "jwk-to-pem": "^2.0.5"
   }
 }
