@@ -61,7 +61,7 @@ function buildCustomBuiltins() {
         // console.log("OK(io.jwt.decode_verify)", { cert, iss, aud, time }, "=", {
         //   ok: true,
         // });
-        console.log("ok");
+        // console.log("ok");
         return [true, header, payload];
       } catch (error) {
         // console.log(
@@ -70,8 +70,8 @@ function buildCustomBuiltins() {
         //   "=",
         //   { error: error.message }
         // );
-        const decoded = jsonwebtoken.decode(jwt, { complete: true });
-        console.log("err", { error: error.message, decoded, cert });
+        // const decoded = jsonwebtoken.decode(jwt, { complete: true });
+        // console.log("err", { error: error.message, decoded, cert });
         return [false, {}, {}];
       }
     },
