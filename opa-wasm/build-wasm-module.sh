@@ -1,13 +1,8 @@
-mkdir in
-tar -xf systems_ccc.ccc-api-prod.tar.gz -C in
+mkdir -p tmp/in
+tar -xf systems_ccc.ccc-api-prod.tar.gz -C tmp/in
 
-# rm -rf in/global/testkit
-# rm -rf in/global/testkit2
-# rm -rf in/policy/com.styra.envoy.ingress/test/test
+./opa build -t wasm -e policy/envoy/ingress/main/main tmp/in
 
-# ./opa build -t wasm -e policy/com.styra.envoy.ingress/rules/rules/allow in
-./opa build -t wasm -e policy/envoy/ingress/main/main in
-
-mkdir out
-tar -xf bundle.tar.gz -C out
+mkdir -p tmp/out
+tar -xf bundle.tar.gz -C tmp/out
 rm bundle.tar.gz

@@ -4,11 +4,11 @@ import jsonwebtoken from "jsonwebtoken";
 import jwkToBuffer from "jwk-to-pem";
 
 const policy = await opa.loadPolicy(
-  await fs.readFile("out/policy.wasm"),
+  await fs.readFile("tmp/out/policy.wasm"),
   undefined,
   makeCustomBuiltins()
 );
-policy.setData(JSON.parse(await fs.readFile("out/data.json")));
+policy.setData(JSON.parse(await fs.readFile("tmp/out/data.json")));
 
 const input = JSON.parse(await fs.readFile("sample-input.json"));
 const res = policy.evaluate(input);
