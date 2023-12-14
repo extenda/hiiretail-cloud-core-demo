@@ -1,24 +1,11 @@
 {
   "attributes": {
-    "destination": {
-      "address": {
-        "socketAddress": {
-          "address": "192.168.1.1",
-          "portValue": 8000
-        }
-      }
-    },
-    "metadataContext": {},
     "request": {
-      "time": "2023-12-13T11:49:49.668020Z",
       "http": {
-        "id": "6444912053051211401",
         "headers": {
-          "authorization": "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6ImJlNzgyM2VmMDFiZDRkMmI5NjI3NDE2NThkMjA4MDdlZmVlNmRlNWMiLCJ0eXAiOiJKV1QifQ.eyJuYW1lIjoiR2xlYiBCYXNoa2F0b3YiLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EtL0FPaDE0R2l3OUJwYkdkLXY2cTlOQkE0OUt4NWVmSzM4Zl96c0hNMjkyY05jPXM5Ni1jIiwiaHR0cHM6Ly9leHRlbmRhcmV0YWlsLmNvbS90ZW5hbnQiOiJDSVI3blF3dFMwckE2dDBTNmVqZCIsImh0dHBzOi8vZXh0ZW5kYXJldGFpbC5jb20vZ3JvdXBzIjpbImhPdElxZU9STzRRN0hPenBpTklZIiwicnk5cjB1WUtZTFFOQWJCbmU5ckgiLCJaQ3JDM2k4R29jbTBZbm9teWVJaCIsIkJNTGVyWUFRQmNEMEtleUN2V0xWIl0sImZlZGVyYXRlZCI6eyJyb2xlcyI6W10sIm9wZXJhdG9ySWRzIjpbXSwiZ3JvdXBzIjpbXX0sImlzcyI6Imh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlLmNvbS9oaWlkZW50aXR5LXN0YWZmIiwiYXVkIjoiaGlpZGVudGl0eS1zdGFmZiIsImF1dGhfdGltZSI6MTcwMDc0MDMyMCwidXNlcl9pZCI6Ik5OQlRMMzFiWEphaXFYclE4cTFlSzBCR3ZneTIiLCJzdWIiOiJOTkJUTDMxYlhKYWlxWHJROHExZUswQkd2Z3kyIiwiaWF0IjoxNzAyNDgyMjI0LCJleHAiOjE3MDI0ODU4MjQsImVtYWlsIjoiZ2xlYi5iYXNoa2F0b3ZAZXh0ZW5kYXJldGFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiZmlyZWJhc2UiOnsiaWRlbnRpdGllcyI6eyJvaWRjLndiY2h6IjpbIjEwMTM4NTgwMTYzOTQ4MjExNTQzMiJdLCJlbWFpbCI6WyJnbGViLmJhc2hrYXRvdkBleHRlbmRhcmV0YWlsLmNvbSJdfSwic2lnbl9pbl9wcm92aWRlciI6Im9pZGMud2JjaHoiLCJzaWduX2luX2F0dHJpYnV0ZXMiOnsibG9jYWxlIjoiZW4iLCJoZCI6ImV4dGVuZGFyZXRhaWwuY29tIiwianRpIjoiYTg2ZDc3NTM1YzY1Y2YyOGNhYmI4ZjFiNWQwZTIyNDllMjBjMWRmYSJ9LCJ0ZW5hbnQiOiJ0ZXN0cnVubmVyLTJtZnVrIn19.P_ifMeQSjJaETMibs6BGpo5rhYOL6SRDehcc4UVu-NmothQGz691rXwViBqJIY3wPgyZUZMwBswYFgblKV2EN2zZZQSXUgpwkA0pr7Tm9fGmZqEX-MN0ja1c1iMLhHvoFzq5AVoy0MIQExZljIT-PXAreMM8d5FS6HUvQHTWPtbVHAzXZTT7vX1YeuvB5F5A-odknf5GCLLhl1msIHaLjTcXBljfe6Zi_LjlC79PrHIJq2hK0rILKZEUy2guTF637XyVJN3vC4Lr2FV93RG7d8WOa1kY7r6zKJk3m2yi4phCEnxrChJ1iHFfT8A5O7wy4TF83TCE71xvIBh524SPAQ",
-          ":authority": "ccc-api.retailsvc.com",
+          "authorization": "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6ImJlNzgyM2VmMDFiZDRkMmI5NjI3NDE2NThkMjA4MDdlZmVlNmRlNWMiLCJ0eXAiOiJKV1QifQ.eyJuYW1lIjoiR2xlYiBCYXNoa2F0b3YiLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EtL0FPaDE0R2l3OUJwYkdkLXY2cTlOQkE0OUt4NWVmSzM4Zl96c0hNMjkyY05jPXM5Ni1jIiwiaHR0cHM6Ly9leHRlbmRhcmV0YWlsLmNvbS90ZW5hbnQiOiJDSVI3blF3dFMwckE2dDBTNmVqZCIsImh0dHBzOi8vZXh0ZW5kYXJldGFpbC5jb20vZ3JvdXBzIjpbImhPdElxZU9STzRRN0hPenBpTklZIiwicnk5cjB1WUtZTFFOQWJCbmU5ckgiLCJaQ3JDM2k4R29jbTBZbm9teWVJaCIsIkJNTGVyWUFRQmNEMEtleUN2V0xWIl0sImZlZGVyYXRlZCI6eyJyb2xlcyI6W10sIm9wZXJhdG9ySWRzIjpbXSwiZ3JvdXBzIjpbXX0sImlzcyI6Imh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlLmNvbS9oaWlkZW50aXR5LXN0YWZmIiwiYXVkIjoiaGlpZGVudGl0eS1zdGFmZiIsImF1dGhfdGltZSI6MTcwMDc0MDMyMCwidXNlcl9pZCI6Ik5OQlRMMzFiWEphaXFYclE4cTFlSzBCR3ZneTIiLCJzdWIiOiJOTkJUTDMxYlhKYWlxWHJROHExZUswQkd2Z3kyIiwiaWF0IjoxNzAyNTU5MjQyLCJleHAiOjE3MDI1NjI4NDIsImVtYWlsIjoiZ2xlYi5iYXNoa2F0b3ZAZXh0ZW5kYXJldGFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiZmlyZWJhc2UiOnsiaWRlbnRpdGllcyI6eyJvaWRjLndiY2h6IjpbIjEwMTM4NTgwMTYzOTQ4MjExNTQzMiJdLCJlbWFpbCI6WyJnbGViLmJhc2hrYXRvdkBleHRlbmRhcmV0YWlsLmNvbSJdfSwic2lnbl9pbl9wcm92aWRlciI6Im9pZGMud2JjaHoiLCJzaWduX2luX2F0dHJpYnV0ZXMiOnsibG9jYWxlIjoiZW4iLCJoZCI6ImV4dGVuZGFyZXRhaWwuY29tIiwianRpIjoiYTg2ZDc3NTM1YzY1Y2YyOGNhYmI4ZjFiNWQwZTIyNDllMjBjMWRmYSJ9LCJ0ZW5hbnQiOiJ0ZXN0cnVubmVyLTJtZnVrIn19.cvcyorY26vPMo-BJgnG1JcrQ_nZEH_Lx0ejB0l_qtz5wcvSeG0Pw2-FuHMH-fwINQKkVjnJJMeooWtSuZEFQFOvfACt76moP4rjnmzGbHLnwnSp1Z6XfnFncuxH5qg57mc29BUithYUUmfK4Ts9Y0L3XOaTu0y0Bp4W4_yGrt1OKr2KPU-gkuViVomy2H66gHpss83Y1LpE5K-DHzQutaezUM0Tsj8GcHtorwN2VfkvHdKbQD6BEA1DQ6F5ye98POYUFFyOjuE_yC9XwE87kb5aAg4OD_mhuw5gy7iwIzipfa_XuVPFS-3n-vPVWk6ot5vuEU8vXBNCiAo5b5Ph4cw",
           "x-forwarded-proto": "https",
           "x-request-id": "36ecf067-1526-44b6-ab98-7dbcc5ce2287",
-          ":path": "/api/v1/config/che.receipt-layout.v1",
           "x-cloud-trace-context": "d99a7884060a1a0cf0ed87e0912e31ea/2522916620205553034",
           "referer": "https://developer.hiiretail.com/swagger-ui",
           "k-original-host": "ccc-api.retailsvc.com",
@@ -32,36 +19,16 @@
           "x-forwarded-for": "31.43.101.138, 35.190.126.151, 107.178.206.212, 34.160.48.100",
           "sec-ch-ua-mobile": "?0",
           "accept-encoding": "gzip, deflate, br",
-          ":scheme": "https",
           "if-none-match": "W/\"12ae-/MRe8r+L6KmWTQVnQDK+NAcfTe4\"",
           "sec-fetch-site": "same-origin",
-          ":method": "GET",
           "sec-ch-ua-platform": "\"Windows\"",
           "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
           "sec-ch-ua": "\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"120\", \"Google Chrome\";v=\"120\""
         },
-        "scheme": "https",
         "host": "ccc-api.retailsvc.com",
-        "path": "/api/v1/config/che.receipt-layout.v1",
-        "protocol": "HTTP/1.1",
         "method": "GET"
-      }
-    },
-    "source": {
-      "address": {
-        "socketAddress": {
-          "portValue": 16613,
-          "address": "169.254.1.1"
-        }
       }
     }
   },
-  "parsed_path": ["api", "v1", "config", "che.receipt-layout.v1"],
-  "parsed_body": null,
-  "version": {
-    "encoding": "protojson",
-    "ext_authz": "v3"
-  },
-  "truncated_body": false,
-  "parsed_query": {}
+  "parsed_path": ["api", "v1", "config", "che.receipt-layout.v1"]
 }
