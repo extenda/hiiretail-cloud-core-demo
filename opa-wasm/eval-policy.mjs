@@ -21,8 +21,7 @@ switch (process.argv[2]) {
       [
         "eval",
         "data.policy.envoy.ingress.main.main",
-        ...["-b", "tmp/in/bundle.tar.gz"],
-        ...["-e", "policy/envoy/ingress/main/main"],
+        ...["-b", "tmp/native-bundle.tar.gz"],
         ...["-f", "pretty"],
         "-I",
       ],
