@@ -17,6 +17,7 @@ export const DEFAULT_OPTIONS = {
   nativeBundleBucket: "authz-bundles",
   getNativeBundlePath: (systemName) => `systems/${systemName}.tar.gz`,
   log: console.log,
+  forceRebuild: false,
 };
 
 /**
@@ -36,7 +37,7 @@ const BUILD_CACHE = {};
  * @param {typeof DEFAULT_OPTIONS} options
  */
 async function buildModuleAndData(systemName, options) {
-  if (BUILD_CACHE[systemName] !== undefined) {
+  if (!options.forceRebuild && BUILD_CACHE[systemName] !== undefined) {
     return BUILD_CACHE[systemName];
   }
 
@@ -78,7 +79,7 @@ async function buildModuleAndData(systemName, options) {
   }
 
   const nativeBundle = `${options.workDir}/native-bundle.tar.gz`;
-  if (!fs1.existsSync(nativeBundle)) {
+  if (!options.forceRebuild && !fs1.existsSync(nativeBundle)) {
     options.log("Downloading native bundle...");
 
     const parentDir = path.dirname(nativeBundle);
@@ -92,7 +93,7 @@ async function buildModuleAndData(systemName, options) {
   }
 
   const wasmBundle = `${options.workDir}/wasm-bundle.tar.gz`;
-  if (!fs1.existsSync(wasmBundle)) {
+  if (!options.forceRebuild && !fs1.existsSync(wasmBundle)) {
     options.log("Building WASM bundle...");
 
     const parentDir = path.dirname(wasmBundle);
@@ -109,7 +110,11 @@ async function buildModuleAndData(systemName, options) {
 
   const wasmModuleFile = `${options.workDir}/policy.wasm`;
   const dataFile = `${options.workDir}/data.json`;
-  if (!fs1.existsSync(wasmBundle) || !fs1.existsSync(dataFile)) {
+  if (
+    options.forceRebuild ||
+    !fs1.existsSync(wasmBundle) ||
+    !fs1.existsSync(dataFile)
+  ) {
     await execa("tar", [
       "-x",
       ...["-f", wasmBundle],
