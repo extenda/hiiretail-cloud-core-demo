@@ -13,7 +13,7 @@ import { execa } from "execa";
 
 export const DEFAULT_OPTIONS = {
   opaVersion: "v0.43.0",
-  workDir: "tmp",
+  workDir: "node_modules/.opa-policy",
   nativeBundleBucket: "authz-bundles",
   getNativeBundlePath: (systemName) => `systems/${systemName}.tar.gz`,
   log: console.log,
@@ -24,30 +24,47 @@ export const DEFAULT_OPTIONS = {
   ],
 };
 
-/**
- * @param {string} systemName
- * @param {typeof DEFAULT_OPTIONS} [options]
- */
-export async function loadAppPolicy(systemName, options = DEFAULT_OPTIONS) {
+export async function loadAppPolicy(
+  /** @type {string} */ systemName,
+  options = DEFAULT_OPTIONS
+) {
   const { module, data } = await buildModuleAndData(systemName, options);
   const policy = await opa.loadPolicy(module, undefined, makeCustomBuiltins());
   policy.setData(data);
   return policy;
 }
 
-const BUILD_CACHE = {};
 /**
- * @param {string} systemName
- * @param {typeof DEFAULT_OPTIONS} options
- */
-async function buildModuleAndData(systemName, options) {
-  if (!options.forceRebuild && BUILD_CACHE[systemName] !== undefined) {
-    return BUILD_CACHE[systemName];
+ * @typedef {{ isResolved: boolean; value: ReturnType<typeof buildModuleAndDataNoCache>; }} CacheEntry
+ * @type {Record<string, CacheEntry>}
+ * */
+const BUILD_CACHE = {};
+function buildModuleAndData(
+  /** @type {string} */ systemName,
+  /** @type {typeof DEFAULT_OPTIONS} */ options
+) {
+  let cached = BUILD_CACHE[systemName];
+  if (cached == undefined || (options.forceRebuild && cached.isResolved)) {
+    cached = {
+      isResolved: false,
+      value: buildModuleAndDataNoCache(systemName, options).then((value) => {
+        cached.isResolved = true;
+        return value;
+      }),
+    };
+    BUILD_CACHE[systemName] = cached;
   }
 
-  if (!fs1.existsSync(options.workDir)) {
-    await fs.mkdir(options.workDir, { recursive: true });
-  }
+  return cached.value;
+}
+
+async function buildModuleAndDataNoCache(
+  /** @type {string} */ systemName,
+  /** @type {typeof DEFAULT_OPTIONS} */ options
+) {
+  await fs
+    .mkdir(options.workDir, { recursive: true })
+    .catch((_ignored) => void 0);
 
   const opaFile = `${options.workDir}/opa`;
   if (!fs1.existsSync(opaFile)) {
@@ -76,14 +93,14 @@ async function buildModuleAndData(systemName, options) {
       );
     }
 
-    const body = /** @type never */ (res.body);
     const outStream = fs1.createWriteStream(opaFile, { flags: "wx" });
-    await stream.finished(Readable.fromWeb(body).pipe(outStream));
+    // @ts-expect-error: res.body has wrong type
+    await stream.finished(Readable.fromWeb(res.body).pipe(outStream));
     await fs.chmod(opaFile, "111"); // make executable
   }
 
   const nativeBundle = `${options.workDir}/native-bundle.tar.gz`;
-  if (!options.forceRebuild && !fs1.existsSync(nativeBundle)) {
+  {
     options.log("Downloading native bundle...");
 
     const parentDir = path.dirname(nativeBundle);
@@ -97,7 +114,7 @@ async function buildModuleAndData(systemName, options) {
   }
 
   const wasmBundle = `${options.workDir}/wasm-bundle.tar.gz`;
-  if (!options.forceRebuild && !fs1.existsSync(wasmBundle)) {
+  {
     options.log("Building WASM bundle...");
 
     const parentDir = path.dirname(wasmBundle);
@@ -114,11 +131,7 @@ async function buildModuleAndData(systemName, options) {
 
   const wasmModuleFile = `${options.workDir}/policy.wasm`;
   const dataFile = `${options.workDir}/data.json`;
-  if (
-    options.forceRebuild ||
-    !fs1.existsSync(wasmBundle) ||
-    !fs1.existsSync(dataFile)
-  ) {
+  {
     await execa("tar", [
       "-x",
       ...["-f", wasmBundle],
@@ -128,13 +141,10 @@ async function buildModuleAndData(systemName, options) {
     ]);
   }
 
-  const result = {
+  return {
     module: await fs.readFile(wasmModuleFile),
     data: JSON.parse(await fs.readFile(dataFile, "utf8")),
   };
-
-  BUILD_CACHE[systemName] = result;
-  return result;
 }
 
 function makeCustomBuiltins() {
@@ -167,7 +177,7 @@ function makeCustomBuiltins() {
           issuer: iss,
           audience: aud,
           complete: true,
-          clockTimestamp: time !== undefined ? time / 1_000_000 : undefined,
+          clockTimestamp: time !== undefined ? +time / 1_000_000 : undefined,
         });
         return [true, header, payload];
       } catch (_error) {
