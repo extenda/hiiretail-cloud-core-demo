@@ -15,7 +15,7 @@ switch (process.argv[2]) {
     break;
   }
   case "native": {
-    // works only after starting running eval-policy in wasm mode
+    // works only after running at least once in wasm mode
     await execa(
       "./tmp/opa",
       [
