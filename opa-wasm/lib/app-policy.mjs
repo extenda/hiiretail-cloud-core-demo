@@ -18,6 +18,10 @@ export const DEFAULT_OPTIONS = {
   getNativeBundlePath: (systemName) => `systems/${systemName}.tar.gz`,
   log: console.log,
   forceRebuild: false,
+  entrypoints: [
+    "policy/envoy/ingress/main/main",
+    "policy/com.styra.envoy.app/rules/rules",
+  ],
 };
 
 /**
@@ -102,7 +106,7 @@ async function buildModuleAndData(systemName, options) {
     await execa(opaFile, [
       "build",
       ...["-t", "wasm"],
-      ...["-e", "policy/envoy/ingress/main/main"],
+      ...options.entrypoints.map((e) => ["-e", e]).flat(),
       ...["-b", nativeBundle],
       ...["-o", wasmBundle],
     ]);
