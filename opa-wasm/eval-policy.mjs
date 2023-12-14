@@ -1,7 +1,7 @@
 // @ts-check
 import fs from "node:fs/promises";
 import { execa } from "execa";
-import { loadAppPolicy } from "./load-app-policy.mjs";
+import { loadAppPolicy } from "./lib/app-policy.mjs";
 
 const input = await fs.readFile(process.argv[3], "utf8").catch(() => {
   return printUsageAndExit();
