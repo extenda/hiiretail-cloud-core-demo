@@ -11,7 +11,7 @@ import tar from "tar";
 import { Storage } from "@google-cloud/storage";
 import { execa } from "execa";
 
-const OPA_VERSION = "v0.47.0";
+const OPA_VERSION = "v0.43.0";
 const POLICY_BUNDLE_BUCKET = "authz-bundles";
 const WORKDIR = "./tmp";
 const OPA_FILE = `${WORKDIR}/opa`;
