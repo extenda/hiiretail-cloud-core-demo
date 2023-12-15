@@ -12,6 +12,15 @@ switch (process.argv[2]) {
     const policy = await loadAppPolicy("ccc.ccc-api-prod");
     const [{ result }] = policy.evaluate(JSON.parse(input));
     console.log(JSON.stringify(result, null, 2));
+
+    // NOTE: uncomment to run benchmark
+    // const start = Date.now();
+    // const runs = 10_000;
+    // for (let i = 0; i < runs; i++) {
+    //   policy.evaluate(JSON.parse(input));
+    // }
+    // const latency = (Date.now() - start) / runs;
+    // console.log(`Avg latency (${runs} runs): ${latency}ms`);
     break;
   }
   case "native": {

@@ -100,7 +100,7 @@ async function buildModuleAndDataNoCache(
   }
 
   const nativeBundle = `${options.workDir}/native-bundle.tar.gz`;
-  {
+  if (options.forceRebuild || !fs1.existsSync(nativeBundle)) {
     options.log("Downloading native bundle...");
 
     const parentDir = path.dirname(nativeBundle);
@@ -114,7 +114,7 @@ async function buildModuleAndDataNoCache(
   }
 
   const wasmBundle = `${options.workDir}/wasm-bundle.tar.gz`;
-  {
+  if (options.forceRebuild || !fs1.existsSync(wasmBundle)) {
     options.log("Building WASM bundle...");
 
     const parentDir = path.dirname(wasmBundle);
@@ -129,9 +129,13 @@ async function buildModuleAndDataNoCache(
     ]);
   }
 
-  const wasmModuleFile = `${options.workDir}/policy.wasm`;
-  const dataFile = `${options.workDir}/data.json`;
-  {
+  const policyModule = `${options.workDir}/policy.wasm`;
+  const policyData = `${options.workDir}/data.json`;
+  if (
+    options.forceRebuild ||
+    !fs1.existsSync(policyModule) ||
+    !fs1.existsSync(policyData)
+  ) {
     await execa("tar", [
       "-x",
       ...["-f", wasmBundle],
@@ -142,8 +146,8 @@ async function buildModuleAndDataNoCache(
   }
 
   return {
-    module: await fs.readFile(wasmModuleFile),
-    data: JSON.parse(await fs.readFile(dataFile, "utf8")),
+    module: await fs.readFile(policyModule),
+    data: JSON.parse(await fs.readFile(policyData, "utf8")),
   };
 }
 
