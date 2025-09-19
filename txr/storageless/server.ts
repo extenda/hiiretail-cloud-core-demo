@@ -4,6 +4,23 @@ import express from "npm:express@4.18.2";
 const app = express();
 
 app.use(express.json());
+app.use((req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Missing or invalid authorization header' });
+  }
+  const token = authHeader.split(' ')[1];
+  try {
+    // Verify JWT token here
+    // For demo purposes, just checking if token exists
+    if (!token) {
+      throw new Error('Invalid token');
+    }
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+});
 
 app.get("/api/v1/transactions/:transactionId", (req, res) => {
   const { transactionId } = req.params;
