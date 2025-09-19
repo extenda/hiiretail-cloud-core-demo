@@ -5,19 +5,21 @@ const app = express();
 
 app.use(express.json());
 
-app.get("/api/v1/transactions/test", (req, res) => {
+app.get("/api/v1/transactions/:transactionId", (req, res) => {
+  const { transactionId } = req.params;
+
   // invalid response
   // res.json({ message: "Hello World" });
 
   // valid response
   res.json({
-    transactionId: "transactionId",
+    transactionId: transactionId,
     transactionData: "dGVzdA==",
-    extraProperty1: "string",
+    extraProperty1: "string", 
     countryCode: "NO",
     linkedTransactions: [
       {
-        transactionId: "transactionId",
+        transactionId: transactionId,
         countryCode: "NO",
         transactionData: "dGVzdA==",
       },
@@ -31,6 +33,8 @@ app.post("/api/v1/transactions:search", (req, res) => {
   // res.json({ message: "Hello World" });
 
   // valid response
+  // search body
+  console.log(req.body);
   res.json({
     results: [
       {
