@@ -1,0 +1,44 @@
+[
+  {
+    "transactionId": "001;01;59;2021-11-1418:13:52;33",
+    "workstationId": "01",
+    "operatorId": "01",
+    "total": "50",
+    "countryCode": "UK",
+    "beginDateTime": "2021-11-14 17:13:10 UTC",
+    "endDateTime": "2021-11-14 18:13:10 UTC",
+    "businessUnitId": "001",
+    "receiptNumber": "01",
+    "events": [
+      {
+        "eventName": "Sale"
+      },
+      {
+        "eventName": "Return"
+      }
+    ],
+    "retailStatus": "Finished",
+    "isTrainingMode": false
+  },
+  {
+    "transactionId": "001;01;59;2021-11-1418:13:52;34",
+    "workstationId": "01",
+    "operatorId": "01",
+    "total": "50",
+    "countryCode": "UK",
+    "beginDateTime": "2021-11-14 17:13:10 UTC",
+    "endDateTime": "2021-11-14 18:13:10 UTC",
+    "businessUnitId": "001",
+    "receiptNumber": "01",
+    "events": [
+      {
+        "eventName": "Sale"
+      },
+      {
+        "eventName": "Return"
+      }
+    ],
+    "retailStatus": "Finished",
+    "isTrainingMode": false
+  }
+]

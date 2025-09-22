@@ -1,79 +1,80 @@
 // @deno-types="npm:@types/express@4.17.15"
 import express from "npm:express@4.18.2";
+import { zip } from "../utils.ts";
 
 const app = express();
 
 app.use(express.json());
+app.use((req, _, next) => {
+  console.log(`${req.method} ${req.path} - ${new Date().toISOString()}`);
+  next();
+});
+
 app.use((req, res, next) => {
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Missing or invalid authorization header' });
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res
+      .status(401)
+      .json({ error: "Missing or invalid authorization header" });
   }
-  const token = authHeader.split(' ')[1];
+  const token = authHeader.split(" ")[1];
   try {
     // Verify JWT token here
     // For demo purposes, just checking if token exists
     if (!token) {
-      throw new Error('Invalid token');
+      throw new Error("Invalid token");
     }
     next();
   } catch (err) {
-    return res.status(401).json({ error: 'Invalid token' });
+    return res.status(401).json({ error: "Invalid token" });
   }
 });
 
-app.get("/api/v1/transactions/:transactionId", (req, res) => {
+app.get("/api/v1/transactions/:transactionId", async (req, res) => {
   const { transactionId } = req.params;
 
-  // invalid response
-  // res.json({ message: "Hello World" });
-
-  // valid response
   res.json({
     transactionId: transactionId,
-    transactionData: "dGVzdA==",
-    extraProperty1: "string", 
+    transactionData: btoa(
+      String.fromCharCode(
+        ...(await zip(
+          await Deno.readFile(
+            "./storageless/transactions/" + transactionId + ".xml"
+          )
+        )!)
+      )
+    ),
+    extraProperty1: "string",
     countryCode: "NO",
     linkedTransactions: [
       {
         transactionId: transactionId,
         countryCode: "NO",
-        transactionData: "dGVzdA==",
+        transactionData: btoa(
+          String.fromCharCode(
+            ...(await zip(
+              await Deno.readFile(
+                "./storageless/transactions/" + transactionId + ".xml"
+              )
+            )!)
+          )
+        ),
       },
     ],
   });
   res.status(200).end();
 });
 
-app.post("/api/v1/transactions:search", (req, res) => {
-  // invalid response
-  // res.json({ message: "Hello World" });
+app.post("/api/v1/transactions:search", async (req, res) => {
+  const searchResult = await Deno.readFile("./storageless/search-result.json");
+  const searchResultJson = JSON.parse(new TextDecoder().decode(searchResult));
 
-  // valid response
-  // search body
-  console.log(req.body);
   res.json({
-    results: [
-      {
-        extraProperty1: "string",
-        transactionId: "001;01;59;2021-11-1418:13:52;33",
-        workstationId: "01",
-        operatorId: "01",
-        total: "50",
-        countryCode: "UK",
-        beginDateTime: "2021-11-14 17:13:10 UTC",
-        endDateTime: "2021-11-14 18:13:10 UTC",
-        businessUnitId: "001",
-        receiptNumber: "01",
-        events: [{ eventName: "Sale" }, { eventName: "Return" }],
-        retailStatus: "Finished",
-        isTrainingMode: false,
-      },
-    ],
+    results: searchResultJson,
     page: {
       take: 10,
       skip: 0,
-      total: 1,
+      total: searchResultJson.length,
       hasMore: false,
     },
   });
