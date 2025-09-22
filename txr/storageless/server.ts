@@ -54,7 +54,7 @@ app.get("/api/v1/transactions/:transactionId", async (req, res) => {
           String.fromCharCode(
             ...(await zip(
               await Deno.readFile(
-                "./storageless/transactions/" + transactionId + ".xml"
+                "./storageless/transactions/void-item-sale.xml"
               )
             )!)
           )
