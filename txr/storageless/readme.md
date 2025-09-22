@@ -14,9 +14,9 @@ PUT https://txr-search.retailsvc.com/api/v1/config/storageless
 {
   "clientId": "<client-id>",
   "clientSecret": "<client-secret>",
-  "searchUrl": "https://9f0fd7e5aaea.ngrok-free.app/api/v1/transactions",
+  "searchUrl": "https://<domain>/api/v1/transactions",
   "authUrl": "https://auth.retailsvc.com",
-  "audience": "https://auth.retailsvc.com"
+  "audience": "https://hiiretail.com"
 }
 ```
 
