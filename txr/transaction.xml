@@ -64,7 +64,7 @@
      <VRArtsPoslogExt:Property TypeCode="ItemCategory">JEANS</VRArtsPoslogExt:Property>
     </Sale>
     <SequenceNumber>13</SequenceNumber>
-    <DateTime>2021-11-14T17:13:10</DateTime>
+    <DateTime>[[[TRANSACTION_DATE]]]</DateTime>
    </LineItem>
    <LineItem EntryMethod="Keyed">
     <Tender TypeCode="Sale" TenderType="Cash" VRArtsPoslogExt:InternalTenderId="CA">
@@ -72,7 +72,7 @@
      <VRArtsPoslogExt:Property TypeCode="VRExt:OriginalTenderAmount">50.00</VRArtsPoslogExt:Property>
     </Tender>
     <SequenceNumber>20</SequenceNumber>
-    <DateTime>2021-11-14T17:13:16</DateTime>
+    <DateTime>[[[TRANSACTION_DATE]]]</DateTime>
    </LineItem>
    <LineItem>
     <Tax TypeCode="Sale">
@@ -84,7 +84,7 @@
      <TaxGroupID>3</TaxGroupID>
     </Tax>
     <SequenceNumber>42</SequenceNumber>
-    <DateTime>2021-11-14T17:13:16</DateTime>
+    <DateTime>[[[TRANSACTION_DATE]]]</DateTime>
    </LineItem>
    <Total TotalType="VRExt:TransactionDiscountAmount">0.00</Total>
    <Total TotalType="VRExt:LoyaltyTotal">0.00</Total>
@@ -95,15 +95,26 @@
    <Total TotalType="TransactionGrandAmount">50.00</Total>
    <VRArtsPoslogExt:Reason>TRANSACTIONDATA: </VRArtsPoslogExt:Reason>
    <VRArtsPoslogExt:RefundPeriod>
-    <VRArtsPoslogExt:LastDate>2021-12-14T23:59:59</VRArtsPoslogExt:LastDate>
+    <VRArtsPoslogExt:LastDate>[[[TRANSACTION_DATE]]]</VRArtsPoslogExt:LastDate>
    </VRArtsPoslogExt:RefundPeriod>
+   <ext:ReceiptSeal Version="Portugal-1.0.0">
+      <ext:SealParameter Name="fiscalprefix">FT</ext:SealParameter>
+      <ext:SealParameter Name="fiscalsourcetext">2023-07-06;2023-07-06T16:16:30;FT 000200100004/0000022;461.00;LdaQ86AENQ3GEjaE9sg3xGZMhqx3y9x0xdJfxih+2mNI23UXfJUOc/a7TIDUkIG5jRgmmKc7WzFRfCGmUg6pDUi51hEPYI7YjcZqqI3/QzOl9eSvhvhsH43NZhouBdBQxBwG9hDjFSolcxYYGlV4wbDKfDbOAInQKCnn4GjRKRg=</ext:SealParameter>
+      <ext:SealParameter Name="extendedrecnum">FT 000200100004/0000023</ext:SealParameter>
+      <ext:SealParameter Name="fiscalatcud">HHFFGGT3-0000022</ext:SealParameter>
+      <ext:SealParameter Name="fiscalcertificate">9999</ext:SealParameter>
+      <ext:SealParameter Name="fiscalsignature">VPSE0l0HUD3iRsskpu0BHC65SFvoupcRuLcFKzo7l8z6mEKchnQ7RaWsy9PsRkqvpeQHBWw5xD3RBk8DfeTDBqEVfH4WsWVIWqp10w7+hqo6r9a4dnQX5C//g2GDXFzGxNBHZx2o9hvfYCuBCJEDiGWtXHHn/omE1zP2FYQeQ1g=</ext:SealParameter>
+      <ext:SealParameter Name="fiscalsig4c">V3Hc</ext:SealParameter>
+      <ext:SealParameter Name="fiscalkeyversion">1</ext:SealParameter>
+      <ext:SealParameter Name="fiscalbarcode">10002001000040000022</ext:SealParameter>
+    </ext:ReceiptSeal>
   </RetailTransaction>
   <RevenueCenterID>till_lane</RevenueCenterID>
-  <BeginDateTime>2021-11-14T17:13:10</BeginDateTime>
-  <EndDateTime>2021-11-14T17:13:16</EndDateTime>
+  <BeginDateTime>[[[TRANSACTION_DATE]]]</BeginDateTime>
+  <EndDateTime>[[[TRANSACTION_DATE]]]</EndDateTime>
   <ControlTransaction>
    <ApplicationEvent>CashDrawerOpen</ApplicationEvent>
-   <VRArtsPoslogExt:AuthorizedOpen>2021-11-14T17:13:16</VRArtsPoslogExt:AuthorizedOpen>
+   <VRArtsPoslogExt:AuthorizedOpen>[[[TRANSACTION_DATE]]]</VRArtsPoslogExt:AuthorizedOpen>
   </ControlTransaction>
   <ControlTransaction>
    <ApplicationEvent>CashDrawerStatistics</ApplicationEvent>
@@ -113,4 +124,3 @@
   <VRArtsPoslogExt:FiscalOperatorCode>9</VRArtsPoslogExt:FiscalOperatorCode>
  </Transaction>
 </POSLog>
-
