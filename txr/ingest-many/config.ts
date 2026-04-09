@@ -1,17 +1,20 @@
 import { TENANT_ID } from "../constants.ts";
 
 export const config = {
-  // time to wait before sending transactions
-  msBetweenIngests: 1000,
+  // total number of transactions to publish
+  transactionCount: 20000,
 
-  // if left undefined, will not be changed in transactions
-  businessUnitId: "07",
-  workstationId: "007",
-  operatorId: "1",
+  // number of transactions to publish per second (evenly distributed)
+  transactionsPerSecond: 60, // NOTE: set 10-20% more to account for latencies
 
-  // values to start from, will be incremented from transaction to transaction
-  sequenceNumber: 1,
-  receiptNumber: 1,
+  // business unit IDs to distribute transactions across (round-robin)
+  businessUnitIds: Array.from({ length: 500 }, (_, i) => `at-test-${i + 1}`),
+  workstationId: "9800",
+  operatorId: "txr-ingestor-1",
+
+  // starting values for per-BU sequence/receipt counters
+  initialSequenceNumber: 1,
+  initialReceiptNumber: 1,
 
   // default values, will be used if left undefined
   countryCode: "NO",
