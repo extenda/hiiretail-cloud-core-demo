@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { CustomerSearchPanel } from '../components/CustomerSearchPanel'
 import { CustomerTable } from '../components/CustomerTable'
 import { CustomerForm } from '../components/CustomerForm'
+import { deleteCustomerById } from '../api/client'
 import { useCustomerSearch, type CustomerSearchFilters } from '../hooks/useCustomerSearch'
 import type { CustomerSearchItemDto } from '../api/client'
 
@@ -10,6 +11,8 @@ export function CustomerListPage() {
   const navigate = useNavigate()
   const [customerFilters, setCustomerFilters] = useState<CustomerSearchFilters>({ skip: 0, take: 50 })
   const [showCreateCustomer, setShowCreateCustomer] = useState(false)
+  const [deletingCustomerId, setDeletingCustomerId] = useState<string | null>(null)
+  const [deleteCustomerError, setDeleteCustomerError] = useState<string | null>(null)
 
   const customerQuery = useCustomerSearch(customerFilters)
 
@@ -35,6 +38,29 @@ export function CustomerListPage() {
     customerQuery.refetch()
   }, [customerQuery])
 
+  const handleDeleteCustomer = useCallback(
+    async (customer: CustomerSearchItemDto) => {
+      const confirmed = window.confirm(`Delete customer "${customer.name ?? customer.customerId}"?`)
+      if (!confirmed) return
+
+      setDeleteCustomerError(null)
+      setDeletingCustomerId(customer.customerId)
+
+      try {
+        const res = await deleteCustomerById({ path: { customerId: customer.customerId } })
+        if (res.error) {
+          throw new Error(JSON.stringify(res.error))
+        }
+        await customerQuery.refetch()
+      } catch (error) {
+        setDeleteCustomerError(String(error))
+      } finally {
+        setDeletingCustomerId(null)
+      }
+    },
+    [customerQuery],
+  )
+
   return (
     <>
       <div className="space-y-4">
@@ -51,6 +77,9 @@ export function CustomerListPage() {
         {customerQuery.error && (
           <ErrorCard message={String(customerQuery.error)} />
         )}
+        {deleteCustomerError && (
+          <ErrorCard message={deleteCustomerError} />
+        )}
 
         {customerQuery.data && (
           <div>
@@ -65,6 +94,8 @@ export function CustomerListPage() {
               selectedCustomerId={null}
               onSelect={handleSelectCustomer}
               onPageChange={handleCustomerPageChange}
+              onDeleteClick={handleDeleteCustomer}
+              deletingCustomerId={deletingCustomerId}
             />
           </div>
         )}

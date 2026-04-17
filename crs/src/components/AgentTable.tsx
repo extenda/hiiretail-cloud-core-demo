@@ -7,6 +7,8 @@ interface Props {
   page?: PageInfoDto
   onPageChange: (skip: number) => void
   onEditClick?: (agent: TrustedAgentResponseDto) => void
+  onDeleteClick?: (agent: TrustedAgentResponseDto) => void
+  deletingAgentId?: string | null
 }
 
 const columns = [
@@ -14,7 +16,14 @@ const columns = [
   { key: 'externalAgentId', header: 'Ext. Agent ID' },
 ]
 
-function renderExpandedAgent(agent: TrustedAgentResponseDto, onEditClick?: (agent: TrustedAgentResponseDto) => void) {
+function renderExpandedAgent(
+  agent: TrustedAgentResponseDto,
+  onEditClick?: (agent: TrustedAgentResponseDto) => void,
+  onDeleteClick?: (agent: TrustedAgentResponseDto) => void,
+  deletingAgentId?: string | null,
+) {
+  const isDeleting = deletingAgentId === agent.id
+
   return (
     <div>
       <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-3 lg:grid-cols-4">
@@ -26,29 +35,49 @@ function renderExpandedAgent(agent: TrustedAgentResponseDto, onEditClick?: (agen
         <Field label="externalAgentId" value={agent.externalAgentId} mono />
         <Field label="businessUnitGroup" value={agent.businessUnitGroup} />
       </dl>
-      {onEditClick && (
+      {(onEditClick || onDeleteClick) && (
         <div className="mt-2 flex justify-end">
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onEditClick(agent) }}
-            className="rounded-md border border-amber-200 px-3 py-1 text-xs font-medium text-amber-700 hover:bg-amber-50"
-          >
-            Edit
-          </button>
+          <div className="flex gap-2">
+            {onEditClick && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onEditClick(agent)
+                }}
+                className="rounded-md border border-amber-200 px-3 py-1 text-xs font-medium text-amber-700 hover:bg-amber-50"
+              >
+                Edit
+              </button>
+            )}
+            {onDeleteClick && (
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDeleteClick(agent)
+                }}
+                className="rounded-md border border-red-200 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>
   )
 }
 
-export function AgentTable({ items, page, onPageChange, onEditClick }: Props) {
+export function AgentTable({ items, page, onPageChange, onEditClick, onDeleteClick, deletingAgentId }: Props) {
   return (
     <div className="space-y-2">
       <DataTable
         columns={columns}
         data={items}
         getRowKey={(r) => r.id}
-        expandedRender={(agent) => renderExpandedAgent(agent, onEditClick)}
+        expandedRender={(agent) => renderExpandedAgent(agent, onEditClick, onDeleteClick, deletingAgentId)}
       />
       <Pagination page={page} onPageChange={onPageChange} />
     </div>

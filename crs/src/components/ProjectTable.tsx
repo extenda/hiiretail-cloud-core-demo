@@ -8,6 +8,8 @@ interface Props {
   page?: PageInfoDto
   onPageChange: (skip: number) => void
   onEditClick?: (project: ProjectSearchItemDto) => void
+  onDeleteClick?: (project: ProjectSearchItemDto) => void
+  deletingProjectId?: string | null
 }
 
 const columns = [
@@ -22,7 +24,14 @@ const columns = [
   { key: 'toDate', header: 'To' },
 ]
 
-function renderExpandedProject(project: ProjectSearchItemDto, onEditClick?: (project: ProjectSearchItemDto) => void) {
+function renderExpandedProject(
+  project: ProjectSearchItemDto,
+  onEditClick?: (project: ProjectSearchItemDto) => void,
+  onDeleteClick?: (project: ProjectSearchItemDto) => void,
+  deletingProjectId?: string | null,
+) {
+  const isDeleting = deletingProjectId === project.projectId
+
   return (
     <div>
       <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-3 lg:grid-cols-4">
@@ -52,29 +61,53 @@ function renderExpandedProject(project: ProjectSearchItemDto, onEditClick?: (pro
           </div>
         )}
       </dl>
-      {onEditClick && (
+      {(onEditClick || onDeleteClick) && (
         <div className="mt-2 flex justify-end">
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onEditClick(project) }}
-            className="rounded-md border border-emerald-200 px-3 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-50"
-          >
-            Edit
-          </button>
+          <div className="flex gap-2">
+            {onEditClick && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onEditClick(project) }}
+                className="rounded-md border border-emerald-200 px-3 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-50"
+              >
+                Edit
+              </button>
+            )}
+            {onDeleteClick && (
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDeleteClick(project)
+                }}
+                className="rounded-md border border-red-200 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>
   )
 }
 
-export function ProjectTable({ items, page, onPageChange, onEditClick }: Props) {
+export function ProjectTable({
+  items,
+  page,
+  onPageChange,
+  onEditClick,
+  onDeleteClick,
+  deletingProjectId,
+}: Props) {
   return (
     <div className="space-y-2">
       <DataTable
         columns={columns}
         data={items}
         getRowKey={(r) => r.projectId}
-        expandedRender={(project) => renderExpandedProject(project, onEditClick)}
+        expandedRender={(project) => renderExpandedProject(project, onEditClick, onDeleteClick, deletingProjectId)}
       />
       <Pagination page={page} onPageChange={onPageChange} />
     </div>
