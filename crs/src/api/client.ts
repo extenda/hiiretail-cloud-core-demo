@@ -12,6 +12,7 @@ export {
   getCustomerById,
   patchCustomerById,
   searchAgents,
+  deleteAgentById,
   searchProjects,
   upsertCustomerById,
   upsertProjectById,

@@ -8,6 +8,7 @@ import { AgentSearchPanel } from '../components/AgentSearchPanel'
 import { AgentTable } from '../components/AgentTable'
 import { ProjectForm } from '../components/ProjectForm'
 import { AgentForm } from '../components/AgentForm'
+import { deleteAgentById } from '../api/client'
 import { useCustomerById } from '../hooks/useCustomerById'
 import { useProjectSearch, type ProjectSearchFilters } from '../hooks/useProjectSearch'
 import { useAgentSearch, type AgentSearchFilters } from '../hooks/useAgentSearch'
@@ -29,6 +30,8 @@ export function CustomerDetailPage() {
   const [showEditCustomer, setShowEditCustomer] = useState(false)
   const [editingProject, setEditingProject] = useState<ProjectSearchItemDto | null>(null)
   const [editingAgent, setEditingAgent] = useState<TrustedAgentResponseDto | null>(null)
+  const [deletingAgentId, setDeletingAgentId] = useState<string | null>(null)
+  const [deleteAgentError, setDeleteAgentError] = useState<string | null>(null)
 
   useEffect(() => {
     if (customerId) {
@@ -79,6 +82,29 @@ export function CustomerDetailPage() {
   const handleAgentEdited = useCallback(() => {
     agentQuery.refetch()
   }, [agentQuery])
+
+  const handleDeleteAgent = useCallback(
+    async (agent: TrustedAgentResponseDto) => {
+      const confirmed = window.confirm(`Delete agent "${agent.name ?? agent.id}"?`)
+      if (!confirmed) return
+
+      setDeleteAgentError(null)
+      setDeletingAgentId(agent.id)
+
+      try {
+        const res = await deleteAgentById({ path: { agentId: agent.id } })
+        if (res.error) {
+          throw new Error(JSON.stringify(res.error))
+        }
+        await agentQuery.refetch()
+      } catch (error) {
+        setDeleteAgentError(String(error))
+      } finally {
+        setDeletingAgentId(null)
+      }
+    },
+    [agentQuery],
+  )
 
   if (customerQuery.isLoading) {
     return (
@@ -187,6 +213,7 @@ export function CustomerDetailPage() {
 
           {agentQuery.isLoading && <LoadingCard label="Loading agents..." />}
           {agentQuery.error && <ErrorCard message={String(agentQuery.error)} />}
+          {deleteAgentError && <ErrorCard message={deleteAgentError} />}
 
           {agentQuery.data && (
             <div>
@@ -200,6 +227,8 @@ export function CustomerDetailPage() {
                 page={agentQuery.data.page}
                 onPageChange={handleAgentPageChange}
                 onEditClick={(agent) => setEditingAgent(agent)}
+                onDeleteClick={handleDeleteAgent}
+                deletingAgentId={deletingAgentId}
               />
             </div>
           )}

@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { ComboBox } from './ComboBox'
 import { SearchInput } from './SearchInput'
-import { SelectInput } from './SelectInput'
 import { useBusinessUnitGroups } from '../hooks/useBusinessUnitGroups'
 import { upsertCustomerById, patchCustomerById } from '../api/client'
 import type { UpsertCustomerDto, PatchCustomerByIdDto, CustomerResponseDto, CustomerStatus, AdditionalInputDto } from '../api/client'
@@ -188,13 +187,39 @@ export function CustomerForm({ open, onClose, onSaved, customer }: Props) {
               value={discountPercent}
               onChange={(e) => setDiscountPercent(e.target.value)}
             />
-            <SelectInput
-              label="Status"
-              options={STATUS_OPTIONS}
-              value={status}
-              onChange={(e) => setStatus(e.target.value as CustomerStatus)}
-              placeholder={false}
-            />
+            <div>
+              <p className="mb-1 block text-xs font-medium text-slate-600">Status</p>
+              <div className="rounded-md border border-slate-300 bg-white p-2 shadow-sm">
+                <div className="flex flex-wrap gap-2">
+                  {STATUS_OPTIONS.map((option) => {
+                    const checked = status === option.value
+
+                    return (
+                      <label
+                        key={option.value}
+                        className={`inline-flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                          checked
+                            ? 'border-indigo-200 bg-indigo-50 text-indigo-700'
+                            : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="customer-status"
+                          checked={checked}
+                          onChange={() => {
+                            const value = option.value as CustomerStatus
+                            setStatus(value)
+                          }}
+                          className="h-3.5 w-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        {option.label}
+                      </label>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
             <div className="col-span-2 flex items-end gap-4 pb-1">
               <label className="flex items-center gap-2 text-sm text-slate-700">
                 <input
