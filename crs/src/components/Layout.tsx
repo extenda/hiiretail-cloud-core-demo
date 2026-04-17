@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react'
+import { NavLink } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
 
 export function Layout({ children }: { children: ReactNode }) {
@@ -12,12 +13,19 @@ export function Layout({ children }: { children: ReactNode }) {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-xs font-bold text-white">
             CRS
           </div>
-          <div className="flex-1">
+          <div className="min-w-0">
             <h1 className="text-lg font-semibold leading-tight text-slate-900">
               Customer Registry Service
             </h1>
             <p className="text-xs text-slate-500">B2B Demo Explorer</p>
           </div>
+
+          <nav className="ml-4 hidden items-center gap-1 rounded-lg bg-slate-100/80 p-1 sm:flex">
+            <TabLink to="/" end>Customers</TabLink>
+            <TabLink to="/ingest">Ingest API</TabLink>
+          </nav>
+
+          <div className="flex-1" />
 
           {confirmClear ? (
             <div className="flex items-center gap-2 text-sm">
@@ -48,5 +56,31 @@ export function Layout({ children }: { children: ReactNode }) {
       </header>
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6">{children}</main>
     </div>
+  )
+}
+
+function TabLink({
+  to,
+  end,
+  children,
+}: {
+  to: string
+  end?: boolean
+  children: ReactNode
+}) {
+  return (
+    <NavLink
+      to={to}
+      end={end}
+      className={({ isActive }) =>
+        `rounded-md px-3 py-1.5 text-xs font-medium transition ${
+          isActive
+            ? 'bg-white text-slate-900 shadow-sm'
+            : 'text-slate-600 hover:text-slate-900'
+        }`
+      }
+    >
+      {children}
+    </NavLink>
   )
 }
