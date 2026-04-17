@@ -8,7 +8,7 @@ import { AgentSearchPanel } from '../components/AgentSearchPanel'
 import { AgentTable } from '../components/AgentTable'
 import { ProjectForm } from '../components/ProjectForm'
 import { AgentForm } from '../components/AgentForm'
-import { deleteAgentById } from '../api/client'
+import { deleteAgentById, deleteProjectById } from '../api/client'
 import { useCustomerById } from '../hooks/useCustomerById'
 import { useProjectSearch, type ProjectSearchFilters } from '../hooks/useProjectSearch'
 import { useAgentSearch, type AgentSearchFilters } from '../hooks/useAgentSearch'
@@ -30,6 +30,8 @@ export function CustomerDetailPage() {
   const [showEditCustomer, setShowEditCustomer] = useState(false)
   const [editingProject, setEditingProject] = useState<ProjectSearchItemDto | null>(null)
   const [editingAgent, setEditingAgent] = useState<TrustedAgentResponseDto | null>(null)
+  const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null)
+  const [deleteProjectError, setDeleteProjectError] = useState<string | null>(null)
   const [deletingAgentId, setDeletingAgentId] = useState<string | null>(null)
   const [deleteAgentError, setDeleteAgentError] = useState<string | null>(null)
 
@@ -82,6 +84,29 @@ export function CustomerDetailPage() {
   const handleAgentEdited = useCallback(() => {
     agentQuery.refetch()
   }, [agentQuery])
+
+  const handleDeleteProject = useCallback(
+    async (project: ProjectSearchItemDto) => {
+      const confirmed = window.confirm(`Delete project "${project.name ?? project.projectId}"?`)
+      if (!confirmed) return
+
+      setDeleteProjectError(null)
+      setDeletingProjectId(project.projectId)
+
+      try {
+        const res = await deleteProjectById({ path: { projectId: project.projectId } })
+        if (res.error) {
+          throw new Error(JSON.stringify(res.error))
+        }
+        await projectQuery.refetch()
+      } catch (error) {
+        setDeleteProjectError(String(error))
+      } finally {
+        setDeletingProjectId(null)
+      }
+    },
+    [projectQuery],
+  )
 
   const handleDeleteAgent = useCallback(
     async (agent: TrustedAgentResponseDto) => {
@@ -182,6 +207,7 @@ export function CustomerDetailPage() {
 
           {projectQuery.isLoading && <LoadingCard label="Loading projects..." />}
           {projectQuery.error && <ErrorCard message={String(projectQuery.error)} />}
+          {deleteProjectError && <ErrorCard message={deleteProjectError} />}
 
           {projectQuery.data && (
             <div>
@@ -195,6 +221,8 @@ export function CustomerDetailPage() {
                 page={projectQuery.data.page}
                 onPageChange={handleProjectPageChange}
                 onEditClick={(project) => setEditingProject(project)}
+                onDeleteClick={handleDeleteProject}
+                deletingProjectId={deletingProjectId}
               />
             </div>
           )}
