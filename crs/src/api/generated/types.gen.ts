@@ -64,6 +64,9 @@ export type UpsertCustomerDto = {
      * Customer account name.
      */
     name?: string;
+    /**
+     * International phone number (E.164)
+     */
     phone?: string;
     address?: string;
     businessUnitGroup?: string;
@@ -95,6 +98,9 @@ export type CustomerResponseDto = {
      * Customer account name.
      */
     name?: string;
+    /**
+     * International phone number (E.164)
+     */
     phone?: string;
     address?: string;
     businessUnitGroup?: string;
@@ -130,6 +136,9 @@ export type CustomerSearchItemDto = {
      * Customer account name.
      */
     name?: string;
+    /**
+     * International phone number (E.164)
+     */
     phone?: string;
     address?: string;
     businessUnitGroup?: string;
@@ -185,6 +194,9 @@ export type PatchCustomerByIdDto = {
      * Customer account name.
      */
     name?: string;
+    /**
+     * International phone number (E.164)
+     */
     phone?: string;
     address?: string;
     businessUnitGroup?: string;
@@ -217,17 +229,9 @@ export type TrustedAgentResponseDto = {
      */
     id: string;
     /**
-     * Tenant identifier.
-     */
-    tenantId: string;
-    /**
      * Customer id from source CRUD data.
      */
     customerId: string;
-    /**
-     * External customer identifier.
-     */
-    externalCustomerId?: string;
     /**
      * Business unit scope value.
      */
@@ -338,7 +342,7 @@ export type ProjectSearchItemDto = {
      */
     fromDate?: string;
     /**
-     * Project validity en«d date.
+     * Project validity end date.
      */
     toDate?: string;
     /**
@@ -404,7 +408,7 @@ export type ProjectResponseDto = {
      */
     fromDate?: string;
     /**
-     * Project validity en«d date.
+     * Project validity end date.
      */
     toDate?: string;
     /**
@@ -465,7 +469,7 @@ export type UpsertProjectDto = {
      */
     fromDate?: string;
     /**
-     * Project validity en«d date.
+     * Project validity end date.
      */
     toDate?: string;
 };
@@ -514,7 +518,7 @@ export type PatchProjectByIdDto = {
      */
     fromDate?: string;
     /**
-     * Project validity en«d date.
+     * Project validity end date.
      */
     toDate?: string;
 };
@@ -524,6 +528,9 @@ export type UpsertCustomerByExternalIdDto = {
      * Customer account name.
      */
     name?: string;
+    /**
+     * International phone number (E.164)
+     */
     phone?: string;
     address?: string;
     businessUnitGroup?: string;
@@ -555,6 +562,9 @@ export type PatchCustomerByExternalIdDto = {
      * Customer account name.
      */
     name?: string;
+    /**
+     * International phone number (E.164)
+     */
     phone?: string;
     address?: string;
     businessUnitGroup?: string;
@@ -689,7 +699,7 @@ export type UpsertProjectByExternalIdDto = {
      */
     fromDate?: string;
     /**
-     * Project validity en«d date.
+     * Project validity end date.
      */
     toDate?: string;
     /**
@@ -742,7 +752,7 @@ export type PatchProjectByExternalIdDto = {
      */
     fromDate?: string;
     /**
-     * Project validity en«d date.
+     * Project validity end date.
      */
     toDate?: string;
     /**
@@ -977,14 +987,6 @@ export type SearchAgentsData = {
          */
         externalCustomerId?: string;
         /**
-         * External agent id filter
-         */
-        externalAgentId?: string;
-        /**
-         * Trusted agent name filter (NGRAM).
-         */
-        name?: string;
-        /**
          * Offset of items to skip.
          */
         skip?: number;
@@ -992,6 +994,14 @@ export type SearchAgentsData = {
          * Maximum number of items to return.
          */
         take?: number;
+        /**
+         * External agent id filter
+         */
+        externalAgentId?: string;
+        /**
+         * Trusted agent name filter (NGRAM).
+         */
+        name?: string;
     };
     url: '/agents';
 };
@@ -1014,7 +1024,7 @@ export type SearchAgentsErrors = {
 export type SearchAgentsError = SearchAgentsErrors[keyof SearchAgentsErrors];
 
 export type SearchAgentsResponses = {
-    default: AgentSearchResponseDto;
+    200: AgentSearchResponseDto;
 };
 
 export type SearchAgentsResponse = SearchAgentsResponses[keyof SearchAgentsResponses];
@@ -1044,15 +1054,11 @@ export type UpsertAgentErrors = {
 export type UpsertAgentError = UpsertAgentErrors[keyof UpsertAgentErrors];
 
 export type UpsertAgentResponses = {
-    /**
-     * Agent updated.
-     */
-    200: unknown;
-    /**
-     * Agent created.
-     */
-    201: unknown;
+    200: TrustedAgentResponseDto;
+    201: TrustedAgentResponseDto;
 };
+
+export type UpsertAgentResponse = UpsertAgentResponses[keyof UpsertAgentResponses];
 
 export type DeleteAgentByIdData = {
     body?: never;
@@ -1084,11 +1090,10 @@ export type DeleteAgentByIdErrors = {
 export type DeleteAgentByIdError = DeleteAgentByIdErrors[keyof DeleteAgentByIdErrors];
 
 export type DeleteAgentByIdResponses = {
-    /**
-     * Accepted
-     */
-    default: unknown;
+    204: void;
 };
+
+export type DeleteAgentByIdResponse = DeleteAgentByIdResponses[keyof DeleteAgentByIdResponses];
 
 export type GetAgentByIdData = {
     body?: never;
@@ -1120,7 +1125,7 @@ export type GetAgentByIdErrors = {
 export type GetAgentByIdError = GetAgentByIdErrors[keyof GetAgentByIdErrors];
 
 export type GetAgentByIdResponses = {
-    default: TrustedAgentResponseDto;
+    200: TrustedAgentResponseDto;
 };
 
 export type GetAgentByIdResponse = GetAgentByIdResponses[keyof GetAgentByIdResponses];
@@ -1155,34 +1160,41 @@ export type PatchAgentByIdErrors = {
 export type PatchAgentByIdError = PatchAgentByIdErrors[keyof PatchAgentByIdErrors];
 
 export type PatchAgentByIdResponses = {
-    /**
-     * Accepted
-     */
-    default: unknown;
+    200: TrustedAgentResponseDto;
 };
+
+export type PatchAgentByIdResponse = PatchAgentByIdResponses[keyof PatchAgentByIdResponses];
 
 export type SearchProjectsData = {
     body?: never;
     path?: never;
     query?: {
         /**
-         * Business unit scope filter.
+         * Business unit scope filter
          */
         businessUnitId?: string;
         /**
-         * Canonical customer id filter.
+         * Customer id filter
          */
         customerId?: string;
         /**
-         * External customer id filter.
+         * External customer id filter
          */
         externalCustomerId?: string;
         /**
-         * External project id filter.
+         * Offset of items to skip.
+         */
+        skip?: number;
+        /**
+         * Maximum number of items to return.
+         */
+        take?: number;
+        /**
+         * External project id filter
          */
         externalProjectId?: string;
         /**
-         * Project external reference id filter.
+         * Project external reference id filter
          */
         externalReferenceId?: string;
         /**
@@ -1205,14 +1217,6 @@ export type SearchProjectsData = {
          * Project end date filter.
          */
         toDate?: string;
-        /**
-         * Offset of items to skip.
-         */
-        skip?: number;
-        /**
-         * Maximum number of items to return.
-         */
-        take?: number;
     };
     url: '/projects';
 };
@@ -1491,11 +1495,10 @@ export type DeleteAgentByExternalIdErrors = {
 export type DeleteAgentByExternalIdError = DeleteAgentByExternalIdErrors[keyof DeleteAgentByExternalIdErrors];
 
 export type DeleteAgentByExternalIdResponses = {
-    /**
-     * Accepted
-     */
-    default: unknown;
+    204: void;
 };
+
+export type DeleteAgentByExternalIdResponse = DeleteAgentByExternalIdResponses[keyof DeleteAgentByExternalIdResponses];
 
 export type PatchAgentByExternalIdData = {
     body: PatchAgentByExternalIdDto;
@@ -1522,11 +1525,10 @@ export type PatchAgentByExternalIdErrors = {
 export type PatchAgentByExternalIdError = PatchAgentByExternalIdErrors[keyof PatchAgentByExternalIdErrors];
 
 export type PatchAgentByExternalIdResponses = {
-    /**
-     * Accepted
-     */
-    default: unknown;
+    200: TrustedAgentResponseDto;
 };
+
+export type PatchAgentByExternalIdResponse = PatchAgentByExternalIdResponses[keyof PatchAgentByExternalIdResponses];
 
 export type UpsertAgentByExternalIdData = {
     body: UpsertAgentByExternalIdDto;
@@ -1553,11 +1555,11 @@ export type UpsertAgentByExternalIdErrors = {
 export type UpsertAgentByExternalIdError = UpsertAgentByExternalIdErrors[keyof UpsertAgentByExternalIdErrors];
 
 export type UpsertAgentByExternalIdResponses = {
-    /**
-     * Accepted
-     */
-    default: unknown;
+    200: TrustedAgentResponseDto;
+    201: TrustedAgentResponseDto;
 };
+
+export type UpsertAgentByExternalIdResponse = UpsertAgentByExternalIdResponses[keyof UpsertAgentByExternalIdResponses];
 
 export type DeleteProjectByExternalIdData = {
     body: DeleteProjectByExternalIdDto;

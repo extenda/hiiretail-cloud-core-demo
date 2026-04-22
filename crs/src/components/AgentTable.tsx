@@ -19,10 +19,8 @@ function renderExpandedAgent(agent: TrustedAgentResponseDto, onEditClick?: (agen
     <div>
       <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-3 lg:grid-cols-4">
         <Field label="id" value={agent.id} mono />
-        <Field label="tenantId" value={agent.tenantId} mono />
         <Field label="customerId" value={agent.customerId} mono />
         <Field label="name" value={agent.name} />
-        <Field label="externalCustomerId" value={agent.externalCustomerId} mono />
         <Field label="externalAgentId" value={agent.externalAgentId} mono />
         <Field label="businessUnitGroup" value={agent.businessUnitGroup} />
       </dl>
