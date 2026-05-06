@@ -32,9 +32,9 @@ function renderExpandedProject(project: ProjectSearchItemDto, onEditClick?: (pro
         <Field label="status">
           <StatusBadge status={project.status} />
         </Field>
-        <Field label="externalProjectId" value={project.externalProjectId} mono />
-        <Field label="externalReferenceId" value={project.externalReferenceId} mono />
-        <Field label="businessUnitGroup" value={project.businessUnitGroup} />
+         <Field label="externalProjectId" value={project.externalProjectId} mono />
+         <Field label="referenceId" value={project.referenceId} mono />
+         <Field label="businessUnitGroup" value={project.businessUnitGroup} />
         <Field label="addressLine1" value={project.addressLine1} />
         <Field label="addressLine2" value={project.addressLine2} />
         <Field label="zipCode" value={project.zipCode} />

@@ -18,7 +18,7 @@ function renderExpandedAgent(agent: TrustedAgentResponseDto, onEditClick?: (agen
   return (
     <div>
       <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-3 lg:grid-cols-4">
-        <Field label="id" value={agent.id} mono />
+        <Field label="agentId" value={agent.agentId} mono />
         <Field label="customerId" value={agent.customerId} mono />
         <Field label="name" value={agent.name} />
         <Field label="externalAgentId" value={agent.externalAgentId} mono />
@@ -45,7 +45,7 @@ export function AgentTable({ items, page, onPageChange, onEditClick }: Props) {
       <DataTable
         columns={columns}
         data={items}
-        getRowKey={(r) => r.id}
+        getRowKey={(r) => r.agentId}
         expandedRender={(agent) => renderExpandedAgent(agent, onEditClick)}
       />
       <Pagination page={page} onPageChange={onPageChange} />

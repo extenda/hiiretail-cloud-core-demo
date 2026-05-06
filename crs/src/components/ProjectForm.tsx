@@ -20,7 +20,7 @@ export function ProjectForm({ open, customerId, customerName, onClose, onSaved, 
   const [name, setName] = useState(project?.name ?? '')
   const [businessUnitGroup, setBusinessUnitGroup] = useState(project?.businessUnitGroup ?? '')
   const [externalProjectId, setExternalProjectId] = useState(project?.externalProjectId ?? '')
-  const [externalReferenceId, setExternalReferenceId] = useState(project?.externalReferenceId ?? '')
+  const [referenceId, setReferenceId] = useState(project?.referenceId ?? '')
   const [addressLine1, setAddressLine1] = useState(project?.addressLine1 ?? '')
   const [addressLine2, setAddressLine2] = useState(project?.addressLine2 ?? '')
   const [zipCode, setZipCode] = useState(project?.zipCode ?? '')
@@ -60,9 +60,7 @@ export function ProjectForm({ open, customerId, customerName, onClose, onSaved, 
       if (isEditing) {
         const body: PatchProjectByIdDto = {
           name: name || undefined,
-          businessUnitGroup: businessUnitGroup || undefined,
-          externalProjectId: externalProjectId || undefined,
-          externalReferenceId: externalReferenceId || undefined,
+          referenceId: referenceId || undefined,
           addressLine1: addressLine1 || undefined,
           addressLine2: addressLine2 || undefined,
           zipCode: zipCode || undefined,
@@ -78,7 +76,7 @@ export function ProjectForm({ open, customerId, customerName, onClose, onSaved, 
           name: name || undefined,
           businessUnitGroup: businessUnitGroup || undefined,
           externalProjectId: externalProjectId || undefined,
-          externalReferenceId,
+          referenceId,
           addressLine1,
           addressLine2: addressLine2 || undefined,
           zipCode: zipCode || undefined,
@@ -144,13 +142,13 @@ export function ProjectForm({ open, customerId, customerName, onClose, onSaved, 
               value={externalProjectId}
               onChange={(e) => setExternalProjectId(e.target.value)}
             />
-            <SearchInput
-              label={isEditing ? 'Ext. Reference ID' : 'Ext. Reference ID *'}
-              placeholder="ERP-PROJ-10001"
-              value={externalReferenceId}
-              onChange={(e) => setExternalReferenceId(e.target.value)}
-              required={!isEditing}
-            />
+             <SearchInput
+               label={isEditing ? 'Ext. Reference ID' : 'Ext. Reference ID *'}
+               placeholder="ERP-PROJ-10001"
+               value={referenceId}
+               onChange={(e) => setReferenceId(e.target.value)}
+               required={!isEditing}
+             />
             <SearchInput
               label={isEditing ? 'Address Line 1' : 'Address Line 1 *'}
               placeholder="Main Street 10"

@@ -15,9 +15,9 @@ interface Props {
 export function AgentForm({ open, customerId, customerName, onClose, onSaved, agent }: Props) {
   const isEditing = !!agent
 
-  const [agentId, setAgentId] = useState(agent?.id ?? '')
+  const [agentId, setAgentId] = useState(agent?.agentId ?? '')
   const [name, setName] = useState(agent?.name ?? '')
-  const [externalId, setExternalId] = useState(agent?.externalAgentId ?? '')
+  const [externalAgentId, setExternalAgentId] = useState(agent?.externalAgentId ?? '')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -30,15 +30,14 @@ export function AgentForm({ open, customerId, customerName, onClose, onSaved, ag
       if (isEditing) {
         const body: PatchAgentByIdDto = {
           name,
-          externalId: externalId || undefined,
         }
-        await patchAgentById({ body, path: { agentId: agent.id }, throwOnError: true })
+        await patchAgentById({ body, path: { agentId: agent.agentId }, throwOnError: true })
       } else {
         const body: UpsertAgentByIdDto = {
-          id: agentId || undefined,
+          agentId: agentId || undefined,
           customerId,
           name,
-          externalId: externalId || undefined,
+          externalAgentId: externalAgentId || undefined,
         }
         await upsertAgent({ body, throwOnError: true })
       }
@@ -77,34 +76,34 @@ export function AgentForm({ open, customerId, customerName, onClose, onSaved, ag
           </div>
 
           <div className="space-y-3">
-            {isEditing ? (
-              <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600">Agent ID</label>
-                <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-sm text-slate-500">
-                  {agent.id}
-                </p>
-              </div>
-            ) : (
-              <SearchInput
-                label="Agent ID"
-                placeholder="Auto-generated if empty"
-                value={agentId}
-                onChange={(e) => setAgentId(e.target.value)}
-              />
-            )}
-            <SearchInput
-              label="Name *"
-              placeholder="Agent name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-            <SearchInput
-              label="External ID"
-              placeholder="AGT-10001"
-              value={externalId}
-              onChange={(e) => setExternalId(e.target.value)}
-            />
+           {isEditing ? (
+               <div>
+                 <label className="mb-1 block text-xs font-medium text-slate-600">Agent ID</label>
+                 <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-sm text-slate-500">
+                   {agent.agentId}
+                 </p>
+               </div>
+             ) : (
+               <SearchInput
+                 label="Agent ID"
+                 placeholder="Auto-generated if empty"
+                 value={agentId}
+                 onChange={(e) => setAgentId(e.target.value)}
+               />
+             )}
+             <SearchInput
+               label="Name *"
+               placeholder="Agent name"
+               value={name}
+               onChange={(e) => setName(e.target.value)}
+               required
+             />
+             <SearchInput
+               label="External Agent ID"
+               placeholder="AGT-10001"
+               value={externalAgentId}
+               onChange={(e) => setExternalAgentId(e.target.value)}
+             />
           </div>
 
           {error && (

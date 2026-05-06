@@ -11,13 +11,18 @@ export {
   searchCustomers,
   getCustomerById,
   patchCustomerById,
+  deleteCustomerById,
   searchAgents,
-  searchProjects,
-  upsertCustomerById,
-  upsertProjectById,
-  upsertAgent,
+  getAgentById,
   patchAgentById,
+  deleteAgentById,
+  searchProjects,
+  getProjectById,
   patchProjectById,
+  deleteProjectById,
+  upsertCustomerById,
+  upsertAgent,
+  upsertProjectById,
 } from "./generated";
 
 export type {
