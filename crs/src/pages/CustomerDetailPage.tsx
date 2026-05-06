@@ -237,15 +237,15 @@ export function CustomerDetailPage() {
             onClose={() => setShowCreateAgent(false)}
             onSaved={handleAgentCreated}
           />
-          <AgentForm
-            key={editingAgent?.id}
-            open={editingAgent !== null}
-            customerId={customerId}
-            customerName={customer.name ?? customerId}
-            onClose={() => setEditingAgent(null)}
-            onSaved={handleAgentEdited}
-            agent={editingAgent ?? undefined}
-          />
+           <AgentForm
+             key={editingAgent?.agentId}
+             open={editingAgent !== null}
+             customerId={customerId}
+             customerName={customer.name ?? customerId}
+             onClose={() => setEditingAgent(null)}
+             onSaved={handleAgentEdited}
+             agent={editingAgent ?? undefined}
+           />
         </>
       )}
     </div>

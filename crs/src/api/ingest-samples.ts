@@ -66,7 +66,7 @@ export const deleteAgentSample = (): DeleteAgentByExternalIdDto => ({
 export const upsertProjectSample = (): UpsertProjectByExternalIdDto => ({
   externalProjectId: "EXT-PROJ-001",
   externalCustomerId: "EXT-CUST-001",
-  externalReferenceId: "REF-001",
+  referenceId: "REF-001",
   businessUnitGroup: "demo-bug",
   name: "Demo Project",
   addressLine1: "Site Road 12",
@@ -86,5 +86,6 @@ export const patchProjectSample = (): PatchProjectByExternalIdDto => ({
 
 export const deleteProjectSample = (): DeleteProjectByExternalIdDto => ({
   externalProjectId: "EXT-PROJ-001",
+  externalCustomerId: "EXT-CUST-001",
   businessUnitGroup: "demo-bug",
 });

@@ -74,26 +74,24 @@ export function CustomerForm({ open, onClose, onSaved, customer }: Props) {
     const filteredInputs = additionalInputs.filter((ai) => ai.id && ai.displayText)
 
     try {
-      if (isEditing) {
-        const body: PatchCustomerByIdDto = {
-          name: name || undefined,
-          phone: phone || undefined,
-          address: address || undefined,
-          businessUnitGroup: businessUnitGroup || undefined,
-          externalCustomerId: externalCustomerId || undefined,
-          discountPercent: discountPercent ? Number(discountPercent) : undefined,
-          status,
-          requireProject,
-          requireIdentification,
-          requireRequisition,
-          licenses: licenses.trim() ? licenses.split(',').map((l) => l.trim()).filter(Boolean) : undefined,
-          promotions,
-          additionalInputs: filteredInputs.length > 0 ? filteredInputs : undefined,
-          creditLimit: creditTotal || creditAvailable
-            ? { total: Number(creditTotal), available: Number(creditAvailable), versionTimestamp: new Date().toISOString() }
-            : undefined,
-        }
-        await patchCustomerById({ body, path: { customerId: customer.customerId }, throwOnError: true })
+       if (isEditing) {
+         const body: PatchCustomerByIdDto = {
+           name: name || undefined,
+           phone: phone || undefined,
+           address: address || undefined,
+           discountPercent: discountPercent ? Number(discountPercent) : undefined,
+           status,
+           requireProject,
+           requireIdentification,
+           requireRequisition,
+           licenses: licenses.trim() ? licenses.split(',').map((l) => l.trim()).filter(Boolean) : undefined,
+           promotions,
+           additionalInputs: filteredInputs.length > 0 ? filteredInputs : undefined,
+           creditLimit: creditTotal || creditAvailable
+             ? { total: Number(creditTotal), available: Number(creditAvailable), versionTimestamp: new Date().toISOString() }
+             : undefined,
+         }
+         await patchCustomerById({ body, path: { customerId: customer.customerId }, throwOnError: true })
       } else {
         const body: UpsertCustomerDto = {
           name: name || undefined,
