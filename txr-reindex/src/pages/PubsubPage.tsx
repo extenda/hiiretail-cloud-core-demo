@@ -2,12 +2,12 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { fetchMonitorData } from '../api/client'
 import { JobTable } from '../components/JobTable'
-import { RunJobForm } from '../components/RunJobForm'
+import { PubsubJobForm } from '../components/PubsubJobForm'
 
 const REFETCH_INTERVAL_MS = 30_000
 
-export function MonitorPage() {
-  const [showRunForm, setShowRunForm] = useState(false)
+export function PubsubPage() {
+  const [showForm, setShowForm] = useState(false)
   const {
     data,
     isLoading,
@@ -22,17 +22,20 @@ export function MonitorPage() {
     refetchInterval: REFETCH_INTERVAL_MS,
   })
 
+  // Only show rows where the execution has JOB_TYPE=pubsub, or progress-only rows
+  // whose backing index matches the data-stream alias (no execution linked).
   const allMatched = data?.matched ?? []
-  const reindexRows = allMatched.filter((r) => {
+  const pubsubRows = allMatched.filter((r) => {
     if (r.execution) {
       const jobType = r.execution.container?.env.find((e) => e.name === 'JOB_TYPE')?.value
-      return !jobType || jobType === 'reindex'
+      return jobType === 'pubsub'
     }
-    // Progress-only rows: include them (they belong to reindex unless proven otherwise)
-    return true
+    // Progress-only rows without an execution: can't determine job type,
+    // exclude them to avoid noise (they'll appear on the reindex tab).
+    return false
   })
 
-  const runningCount = reindexRows.filter(
+  const runningCount = pubsubRows.filter(
     (r) => r.execution?.status === 'RUNNING' || r.progress?.status === 'running',
   ).length
 
@@ -41,7 +44,7 @@ export function MonitorPage() {
       {/* Stats bar */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div className="flex gap-4">
-          <StatCard label="Total Jobs" value={reindexRows.length} />
+          <StatCard label="Total Jobs" value={pubsubRows.length} />
           <StatCard label="Running" value={runningCount} highlight={runningCount > 0} />
         </div>
 
@@ -53,9 +56,9 @@ export function MonitorPage() {
           )}
 
           <button
-            onClick={() => setShowRunForm((v) => !v)}
+            onClick={() => setShowForm((v) => !v)}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
-              showRunForm
+              showForm
                 ? 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200'
                 : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
             }`}
@@ -63,7 +66,7 @@ export function MonitorPage() {
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-            Run Job
+            Start Job
           </button>
 
           <button
@@ -89,10 +92,10 @@ export function MonitorPage() {
         </div>
       </div>
 
-      {/* Run Job form */}
-      {showRunForm && (
+      {/* Start Job form */}
+      {showForm && (
         <div className="mb-6">
-          <RunJobForm onClose={() => setShowRunForm(false)} />
+          <PubsubJobForm onClose={() => setShowForm(false)} />
         </div>
       )}
 
@@ -116,12 +119,12 @@ export function MonitorPage() {
 
       {data && (
         <>
-          {reindexRows.length === 0 ? (
+          {pubsubRows.length === 0 ? (
             <div className="text-center py-20 text-slate-400 text-sm">
-              No reindex jobs found. Use "Run Job" to trigger one.
+              No pub/sub republish jobs found. Use "Start Job" to trigger one.
             </div>
           ) : (
-            <JobTable rows={reindexRows} />
+            <JobTable rows={pubsubRows} />
           )}
         </>
       )}

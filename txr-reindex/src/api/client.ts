@@ -22,11 +22,13 @@ export async function triggerExecution(
   backingIndexId: string,
   tenantId?: string,
   jobId?: string,
+  jobType?: string,
+  dateRange?: string,
 ): Promise<{ executionName: string }> {
   const res = await fetch('/api/execute', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ backingIndexId, tenantId, jobId }),
+    body: JSON.stringify({ backingIndexId, tenantId, jobId, jobType, dateRange }),
   })
   if (!res.ok) {
     const body = await res.json().catch(() => ({ error: res.statusText }))

@@ -72,13 +72,15 @@ export default defineConfig({
                 req.on('end', () => resolve(data))
                 req.on('error', reject)
               })
-              const { backingIndexId, tenantId, jobId } = JSON.parse(body) as {
+              const { backingIndexId, tenantId, jobId, jobType, dateRange } = JSON.parse(body) as {
                 backingIndexId: string
                 tenantId?: string
                 jobId?: string
+                jobType?: string
+                dateRange?: string
               }
               const { triggerExecution } = await import('./server/execute.js')
-              const result = await triggerExecution(backingIndexId, tenantId, jobId)
+              const result = await triggerExecution(backingIndexId, tenantId, jobId, jobType, dateRange)
               res.setHeader('Content-Type', 'application/json')
               res.end(JSON.stringify(result))
             } catch (err) {

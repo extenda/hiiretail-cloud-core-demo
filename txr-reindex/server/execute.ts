@@ -12,6 +12,8 @@ export async function triggerExecution(
   backingIndexId: string,
   tenantId?: string,
   jobId?: string,
+  jobType?: string,
+  dateRange?: string,
 ): Promise<ExecutionResult> {
   const auth = new google.auth.GoogleAuth({
     scopes: ['https://www.googleapis.com/auth/cloud-platform'],
@@ -29,6 +31,14 @@ export async function triggerExecution(
 
   if (jobId) {
     env.push({ name: 'JOB_ID', value: jobId })
+  }
+
+  if (jobType) {
+    env.push({ name: 'JOB_TYPE', value: jobType })
+  }
+
+  if (dateRange) {
+    env.push({ name: 'DATE_RANGE', value: dateRange })
   }
 
   const response = await run.projects.locations.jobs.run({

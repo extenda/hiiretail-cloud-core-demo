@@ -77,8 +77,9 @@ function JobRow({ row }: { row: MatchedJob }) {
     ex?.backingIndexId ??
     ex?.container?.env.find((e) => e.name === 'BACKING_INDEX_ID')?.value ??
     undefined
-  const tenantId =
-    ex?.container?.env.find((e) => e.name === 'TENANT_ID')?.value ?? undefined
+  const tenantId   = ex?.container?.env.find((e) => e.name === 'TENANT_ID')?.value   ?? undefined
+  const jobType    = ex?.container?.env.find((e) => e.name === 'JOB_TYPE')?.value    ?? undefined
+  const dateRange  = ex?.container?.env.find((e) => e.name === 'DATE_RANGE')?.value  ?? undefined
   const jobId = p?.jobId
 
   return (
@@ -177,7 +178,13 @@ function JobRow({ row }: { row: MatchedJob }) {
         {/* Actions */}
         <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
           {backingIndexId && (
-            <RestartButton backingIndexId={backingIndexId} tenantId={tenantId} jobId={jobId} />
+            <RestartButton
+              backingIndexId={backingIndexId}
+              tenantId={tenantId}
+              jobId={jobId}
+              jobType={jobType}
+              dateRange={dateRange}
+            />
           )}
         </td>
       </tr>
@@ -201,14 +208,16 @@ interface RestartButtonProps {
   backingIndexId: string
   tenantId?: string
   jobId?: string
+  jobType?: string
+  dateRange?: string
 }
 
-function RestartButton({ backingIndexId, tenantId, jobId }: RestartButtonProps) {
+function RestartButton({ backingIndexId, tenantId, jobId, jobType, dateRange }: RestartButtonProps) {
   const queryClient = useQueryClient()
   const [flash, setFlash] = useState<'success' | 'error' | null>(null)
 
   const mutation = useMutation({
-    mutationFn: () => triggerExecution(backingIndexId, tenantId, jobId),
+    mutationFn: () => triggerExecution(backingIndexId, tenantId, jobId, jobType, dateRange),
     onSuccess: () => {
       setFlash('success')
       void queryClient.invalidateQueries({ queryKey: ['monitor'] })
@@ -251,6 +260,8 @@ function RestartButton({ backingIndexId, tenantId, jobId }: RestartButtonProps) 
       disabled={mutation.status === 'pending'}
       title={[
         `Backing index: ${backingIndexId}`,
+        jobType && `Job type: ${jobType}`,
+        dateRange && `Date range: ${dateRange}`,
         tenantId && `Tenant: ${tenantId}`,
         jobId && `Job ID: ${jobId}`,
       ].filter(Boolean).join('\n')}
