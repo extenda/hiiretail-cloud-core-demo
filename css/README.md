@@ -1,41 +1,51 @@
 # CSS Frontend
 
-Composable Survey Service (CSS) frontend built with React, TypeScript, and Vite.
+Demo UI for the **Composable Survey Service (CSS)**, built with React, TypeScript, Vite,
+Tailwind CSS, and React Query. Structure, auth flow, and styling mirror the CRS demo
+(see `../crs`).
 
-This is an **auth-only bootstrap**: it authenticates with OCMS client credentials and
-shows a placeholder shell. Survey features will be layered on top later. The structure,
-auth flow, and styling mirror the CRS demo (see `../crs`).
+## Features
+
+- **Surveys** – list with status filter, create (dynamic question builder), and a
+  read-only detail view.
+- **Fill the survey** – pick a business unit + product, then answer a running survey;
+  each answer autosaves to a response.
+- **Responses** – per-survey list of responses; open one to view (terminal responses) or
+  keep editing it (in-progress responses).
 
 ## Run locally
 
-1. Install dependencies:
+```bash
+npm install
+npm run dev
+```
 
-   ```bash
-   npm install
-   ```
+Open the URL printed by Vite (usually `http://localhost:5173`) and sign in with your OCMS
+`Client ID` and `Client Secret`. Auth uses the OCMS client-credentials grant via the dev
+proxy; the token is cached in `localStorage`.
 
-2. Start the dev server:
+## Scripts
 
-   ```bash
-   npm run dev
-   ```
+- `npm run dev` – start the local dev server
+- `npm run build` – type-check and create a production build
+- `npm run lint` – run ESLint
+- `npm run preview` – serve the production build
+- `npm run generate` – regenerate the typed API client from `openapi.json`
 
-3. Open the URL printed by Vite (usually `http://localhost:5173`).
-4. Enter your OCMS `Client ID` and `Client Secret` in the login form.
+## Project layout
 
-Authentication uses the OCMS client-credentials grant against the shared auth service
-(`https://auth.retailsvc.com`) via the dev proxy. The token is cached in `localStorage`.
+```
+src/
+  api/        generated client + thin re-export wrapper (client.ts)
+  auth/       OCMS client-credentials flow + login gate
+  components/ UI building blocks (forms, tables, modals, fill runner)
+  hooks/      React Query data hooks
+  lib/        formatting + survey/response helpers
+  pages/      route screens (surveys, fill, responses)
+```
 
-## Useful scripts
+## API client
 
-- `npm run dev` - start local development server
-- `npm run build` - type-check and create production build
-- `npm run lint` - run ESLint
-- `npm run preview` - serve the production build locally
-
-## Notes / TODO before adding features
-
-- Confirm the real survey-service API host and prefix, then update the `/api` proxy
-  target in `vite.config.ts` (currently a placeholder `https://css-api.retailsvc.com`).
-- Add the typed API client (e.g. via `@hey-api/openapi-ts`) once the OpenAPI spec is
-  available, following the CRS `api/` pattern.
+The typed SDK in `src/api/generated` is generated from `openapi.json` via
+`@hey-api/openapi-ts`. After updating the spec, run `npm run generate`. Backend host and
+prefix are configured by the `/api` and `/oauth2` proxies in `vite.config.ts`.
