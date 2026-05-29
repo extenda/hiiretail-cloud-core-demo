@@ -4,6 +4,7 @@ import { SelectInput } from './SelectInput'
 import { StatusBadge } from './StatusBadge'
 import { QuestionEditor } from './QuestionEditor'
 import {
+  buildConditionSources,
   createQuestionDraft,
   surveyToQuestionDrafts,
   type QuestionDraft,
@@ -118,17 +119,9 @@ export function SurveyForm({ open, onClose, onSaved, survey, readOnly = false }:
     }
   }
 
-  // Stable list of all question-id references; recomputed only when the ids change
-  // (not on every keystroke), so memoized QuestionEditors don't all re-render.
-  const questionIdsKey = questions.map((q) => q.questionId.trim()).join('\u0001')
-  const conditionTargets = useMemo(
-    () =>
-      questionIdsKey
-        .split('\u0001')
-        .filter(Boolean)
-        .map((value) => ({ value, label: value })),
-    [questionIdsKey],
-  )
+  // Recomputed only when the question set changes (not on unrelated state like name/dates),
+  // so memoized QuestionEditors don't all re-render on every keystroke elsewhere.
+  const conditionSources = useMemo(() => buildConditionSources(questions), [questions])
 
   if (!open) return null
 
@@ -319,7 +312,7 @@ export function SurveyForm({ open, onClose, onSaved, survey, readOnly = false }:
                     question={q}
                     index={i}
                     total={questions.length}
-                    conditionTargets={conditionTargets}
+                    conditionSources={conditionSources}
                     onChange={updateQuestion}
                     onRemove={removeQuestion}
                     onMove={moveQuestion}
@@ -434,6 +427,11 @@ function buildPayload(input: BuildInput): BuildResult {
       const equals = q.condition.equals.split(',').map((v) => v.trim()).filter(Boolean)
       if (!q.condition.questionId) {
         return { error: `${label}: Pick the question the visibility condition depends on.` }
+      }
+      if (q.condition.questionId === qid || !seenIds.has(q.condition.questionId)) {
+        return {
+          error: `${label}: A visibility condition must reference an earlier question.`,
+        }
       }
       if (equals.length === 0) {
         return { error: `${label}: Visibility condition needs at least one "equals" value.` }

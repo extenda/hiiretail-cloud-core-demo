@@ -4,6 +4,7 @@ import { SelectInput } from './SelectInput'
 import {
   QUESTION_KIND_OPTIONS,
   createQuestionDraft,
+  type ConditionSource,
   type QuestionDraft,
   type QuestionKind,
   type OptionDraft,
@@ -13,8 +14,8 @@ interface Props {
   question: QuestionDraft
   index: number
   total: number
-  /** questionIds of ALL questions, usable as condition references (own id is filtered out) */
-  conditionTargets: { value: string; label: string }[]
+  /** All questions (in order) as potential condition sources; only preceding ones are offered. */
+  conditionSources: ConditionSource[]
   onChange: (uid: string, next: QuestionDraft) => void
   onRemove: (uid: string) => void
   onMove: (uid: string, direction: -1 | 1) => void
@@ -24,7 +25,7 @@ function QuestionEditorImpl({
   question,
   index,
   total,
-  conditionTargets,
+  conditionSources,
   onChange,
   onRemove,
   onMove,
@@ -32,10 +33,26 @@ function QuestionEditorImpl({
   const set = <K extends keyof QuestionDraft>(key: K, value: QuestionDraft[K]) =>
     onChange(question.uid, { ...question, [key]: value })
 
-  const targets = useMemo(
-    () => conditionTargets.filter((t) => t.value !== question.questionId.trim()),
-    [conditionTargets, question.questionId],
+  // Only questions defined before this one (with an id) can be referenced.
+  const sources = useMemo(
+    () => conditionSources.slice(0, index).filter((s) => s.questionId),
+    [conditionSources, index],
   )
+  const targets = sources.map((s) => ({ value: s.questionId, label: s.questionId }))
+  const selectedSource = sources.find((s) => s.questionId === question.condition.questionId)
+  const equalsValues = question.condition.equals
+    .split(',')
+    .map((v) => v.trim())
+    .filter(Boolean)
+
+  const setEquals = (values: string[]) =>
+    set('condition', { ...question.condition, equals: values.join(', ') })
+  const toggleEquals = (value: string) =>
+    setEquals(
+      equalsValues.includes(value)
+        ? equalsValues.filter((v) => v !== value)
+        : [...equalsValues, value],
+    )
 
   const handleKindChange = (kind: QuestionKind) => {
     // keep shared fields, reset to fresh defaults for the new kind
@@ -269,24 +286,67 @@ function QuestionEditorImpl({
       </div>
 
       {question.condition.enabled && (
-        <div className="mt-2 grid grid-cols-1 gap-3 rounded-md border border-slate-100 bg-slate-50/60 p-2 sm:grid-cols-2">
-          <SelectInput
-            label="Show when question"
-            options={targets}
-            value={question.condition.questionId}
-            onChange={(e) =>
-              set('condition', { ...question.condition, questionId: e.target.value })
-            }
-            placeholder="Select question…"
-          />
-          <TextField
-            label="…equals (comma separated)"
-            placeholder="good, great"
-            value={question.condition.equals}
-            onChange={(e) =>
-              set('condition', { ...question.condition, equals: e.target.value })
-            }
-          />
+        <div className="mt-2 rounded-md border border-slate-100 bg-slate-50/60 p-2">
+          {targets.length === 0 ? (
+            <p className="text-xs text-slate-500">
+              Add a question before this one (with a Question ID) to use it as a condition.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              <SelectInput
+                label="Show when question"
+                options={targets}
+                value={question.condition.questionId}
+                onChange={(e) =>
+                  set('condition', { ...question.condition, questionId: e.target.value })
+                }
+                placeholder="Select question…"
+              />
+
+              {!question.condition.questionId ? null : selectedSource &&
+                (selectedSource.kind === 'SINGLE_SELECT' ||
+                  selectedSource.kind === 'MULTI_SELECT') &&
+                selectedSource.options.length > 0 ? (
+                <div>
+                  <p className="mb-1 text-xs font-medium text-slate-600">
+                    …answer is any of
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedSource.options.map((opt) => {
+                      const active = equalsValues.includes(opt.value)
+                      return (
+                        <label
+                          key={opt.value}
+                          className={`flex cursor-pointer items-center gap-2 rounded-md border px-2.5 py-1 text-xs transition ${
+                            active
+                              ? 'border-indigo-300 bg-indigo-50 text-indigo-900'
+                              : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={active}
+                            onChange={() => toggleEquals(opt.value)}
+                            className="rounded border-slate-300"
+                          />
+                          {opt.label}
+                        </label>
+                      )
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <TextField
+                  label="…equals (comma separated)"
+                  placeholder="good, great"
+                  value={question.condition.equals}
+                  onChange={(e) =>
+                    set('condition', { ...question.condition, equals: e.target.value })
+                  }
+                />
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

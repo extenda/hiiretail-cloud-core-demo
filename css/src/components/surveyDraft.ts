@@ -16,6 +16,14 @@ export interface ConditionDraft {
   equals: string
 }
 
+/** Describes a question that can be used as a visibility-condition source. */
+export interface ConditionSource {
+  questionId: string
+  kind: QuestionKind
+  /** Selectable option values (only populated for select questions). */
+  options: OptionDraft[]
+}
+
 export interface QuestionDraft {
   /** local-only stable key for React */
   uid: string
@@ -106,6 +114,17 @@ export function surveyToQuestionDrafts(questions: SurveyDto['questions']): Quest
 
     return draft
   })
+}
+
+/** Build the list of condition sources (id + kind + trimmed options) from drafts, in order. */
+export function buildConditionSources(questions: QuestionDraft[]): ConditionSource[] {
+  return questions.map((q) => ({
+    questionId: q.questionId.trim(),
+    kind: q.kind,
+    options: q.options
+      .map((o) => ({ value: o.value.trim(), label: o.label.trim() || o.value.trim() }))
+      .filter((o) => o.value),
+  }))
 }
 
 export function createQuestionDraft(kind: QuestionKind = 'TEXT'): QuestionDraft {

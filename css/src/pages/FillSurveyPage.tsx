@@ -14,11 +14,13 @@ const PRODUCT_OPTIONS: { value: Product; label: string }[] = [
 interface FillContext {
   businessUnitId: string
   product: Product
+  workstationId?: string
 }
 
 export function FillSurveyPage() {
   const [businessUnitId, setBusinessUnitId] = useState('')
   const [product, setProduct] = useState<Product | ''>('')
+  const [workstationId, setWorkstationId] = useState('')
   const [context, setContext] = useState<FillContext | null>(null)
   const [fillSurveyId, setFillSurveyId] = useState<string | null>(null)
 
@@ -38,7 +40,11 @@ export function FillSurveyPage() {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
     if (!canSubmit) return
-    setContext({ businessUnitId: businessUnitId.trim(), product: product as Product })
+    setContext({
+      businessUnitId: businessUnitId.trim(),
+      product: product as Product,
+      workstationId: workstationId.trim() || undefined,
+    })
   }
 
   if (context && fillSurveyId) {
@@ -56,10 +62,12 @@ export function FillSurveyPage() {
       <ContextCard
         businessUnitId={businessUnitId}
         product={product}
+        workstationId={workstationId}
         canSubmit={canSubmit}
         isLoading={query.isLoading}
         onBusinessUnitChange={setBusinessUnitId}
         onProductChange={setProduct}
+        onWorkstationChange={setWorkstationId}
         onSubmit={handleSubmit}
       />
 
@@ -88,18 +96,22 @@ export function FillSurveyPage() {
 function ContextCard({
   businessUnitId,
   product,
+  workstationId,
   canSubmit,
   isLoading,
   onBusinessUnitChange,
   onProductChange,
+  onWorkstationChange,
   onSubmit,
 }: {
   businessUnitId: string
   product: Product | ''
+  workstationId: string
   canSubmit: boolean
   isLoading: boolean
   onBusinessUnitChange: (value: string) => void
   onProductChange: (value: Product | '') => void
+  onWorkstationChange: (value: string) => void
   onSubmit: (e: FormEvent) => void
 }) {
   return (
@@ -122,6 +134,12 @@ function ContextCard({
             value={product}
             onChange={(e) => onProductChange(e.target.value as Product | '')}
             placeholder="Select product…"
+          />
+          <TextField
+            label="Workstation ID (optional)"
+            placeholder="e.g. pos-01"
+            value={workstationId}
+            onChange={(e) => onWorkstationChange(e.target.value)}
           />
         </div>
         <button
@@ -153,6 +171,14 @@ function ActiveContextBar({
       <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-700">
         {context.product}
       </span>
+      {context.workstationId && (
+        <>
+          <span>·</span>
+          <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 font-mono text-slate-700">
+            {context.workstationId}
+          </span>
+        </>
+      )}
       <button
         type="button"
         onClick={onChange}

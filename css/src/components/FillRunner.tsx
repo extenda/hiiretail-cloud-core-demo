@@ -215,6 +215,7 @@ export function FillRunner({
         <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
           <Chip>{context.businessUnitId}</Chip>
           <Chip>{context.product}</Chip>
+          {context.workstationId && <Chip>{context.workstationId}</Chip>}
           <span className="text-slate-400">
             Response <code className="font-mono">{responseId.slice(0, 8)}</code>
           </span>
