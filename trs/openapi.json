@@ -1,0 +1,617 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/modules/{moduleId}/translations/{langTag}": {
+      "get": {
+        "description": "Merges the `default` and `managed` layers, the managed value winning per key. Returns the keys published for this language tag alone: an untranslated key is absent, never null, and the response never falls back to `en-US`. Consumers fetch `en-US` alongside their target tag and fall back per missing key. Tenant overrides are not included. Anonymous and cacheable.",
+        "operationId": "getBaseTranslations",
+        "parameters": [
+          {
+            "name": "moduleId",
+            "required": true,
+            "in": "path",
+            "description": "The module scope.",
+            "schema": {
+              "pattern": "^[a-z][a-z0-9-]{1,63}$",
+              "example": "hiicheckout",
+              "type": "string"
+            }
+          },
+          {
+            "name": "langTag",
+            "required": true,
+            "in": "path",
+            "description": "Full RFC 5646 language tag.",
+            "schema": {
+              "example": "en-US",
+              "type": "string"
+            }
+          },
+          {
+            "name": "if-none-match",
+            "required": false,
+            "in": "header",
+            "description": "A previously returned ETag, to revalidate instead of refetching.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "if-modified-since",
+            "required": false,
+            "in": "header",
+            "description": "A previously returned Last-Modified date, to revalidate instead of refetching. Ignored when If-None-Match is present.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResolvedTranslationFileDto"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": ""
+          },
+          "400": {
+            "description": "Invalid params",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get the base translation file (default + managed)",
+        "tags": [
+          "ReadTranslations"
+        ]
+      }
+    },
+    "/modules/{moduleId}/language-tags": {
+      "get": {
+        "description": "The language tags a base read resolves: the `default` and `managed` layers. Tenant languages are not listed. A module with nothing published answers 404, not an empty list. Anonymous and cacheable.",
+        "operationId": "getLanguageTags",
+        "parameters": [
+          {
+            "name": "moduleId",
+            "required": true,
+            "in": "path",
+            "description": "The module scope.",
+            "schema": {
+              "pattern": "^[a-z][a-z0-9-]{1,63}$",
+              "example": "hiicheckout",
+              "type": "string"
+            }
+          },
+          {
+            "name": "if-none-match",
+            "required": false,
+            "in": "header",
+            "description": "A previously returned ETag, to revalidate instead of refetching.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "if-modified-since",
+            "required": false,
+            "in": "header",
+            "description": "A previously returned Last-Modified date, to revalidate instead of refetching. Ignored when If-None-Match is present.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LanguageTagsDto"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": ""
+          },
+          "400": {
+            "description": "Invalid params",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List the language tags a module has published",
+        "tags": [
+          "ReadTranslations"
+        ]
+      }
+    },
+    "/tenants/{tenantId}/modules/{moduleId}/translations/{langTag}": {
+      "get": {
+        "description": "Merges the `default`, `managed` and `tenant` layers in that order, so a tenant override wins over the managed copy and the declarations authored in `default` survive. A tenant with nothing published reads the base file rather than a 404. Anonymous and cacheable.",
+        "operationId": "getTenantTranslations",
+        "parameters": [
+          {
+            "name": "moduleId",
+            "required": true,
+            "in": "path",
+            "description": "The module scope.",
+            "schema": {
+              "pattern": "^[a-z][a-z0-9-]{1,63}$",
+              "example": "hiicheckout",
+              "type": "string"
+            }
+          },
+          {
+            "name": "langTag",
+            "required": true,
+            "in": "path",
+            "description": "Full RFC 5646 language tag.",
+            "schema": {
+              "example": "en-US",
+              "type": "string"
+            }
+          },
+          {
+            "name": "tenantId",
+            "required": true,
+            "in": "path",
+            "description": "The tenant whose overrides are merged into the response.",
+            "schema": {
+              "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$",
+              "example": "exampleTenant1234567",
+              "type": "string"
+            }
+          },
+          {
+            "name": "if-none-match",
+            "required": false,
+            "in": "header",
+            "description": "A previously returned ETag, to revalidate instead of refetching.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "if-modified-since",
+            "required": false,
+            "in": "header",
+            "description": "A previously returned Last-Modified date, to revalidate instead of refetching. Ignored when If-None-Match is present.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResolvedTranslationFileDto"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": ""
+          },
+          "400": {
+            "description": "Invalid params",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get the tenant-resolved translation file (default + managed + tenant)",
+        "tags": [
+          "ReadTranslations"
+        ]
+      }
+    },
+    "/modules/{moduleId}/translations/{langTag}/layers/{layer}": {
+      "put": {
+        "description": "Answers 201 when the file did not exist yet and 200 when it replaced one. The `default` layer is the module English file: it only accepts the `en-US` language tag and declares the keys the other layers may translate. A `managed` or `tenant` file may only translate keys the module already declared in its English `default` file, and carries the translated value alone — the description and the parameters stay as the `default` layer declared them. A `tenant` publish writes for the tenant named by the caller token, never by the request, and may translate `en-US` as well.",
+        "operationId": "publishLayerFile",
+        "parameters": [
+          {
+            "name": "moduleId",
+            "required": true,
+            "in": "path",
+            "description": "The module scope.",
+            "schema": {
+              "pattern": "^[a-z][a-z0-9-]{1,63}$",
+              "example": "hiicheckout",
+              "type": "string"
+            }
+          },
+          {
+            "name": "langTag",
+            "required": true,
+            "in": "path",
+            "description": "Full RFC 5646 language tag.",
+            "schema": {
+              "example": "en-US",
+              "type": "string"
+            }
+          },
+          {
+            "name": "layer",
+            "required": true,
+            "in": "path",
+            "description": "The layer being published.",
+            "schema": {
+              "$ref": "#/components/schemas/PublishableLayer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishTranslationFileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "201": {
+            "description": ""
+          },
+          "400": {
+            "description": "Invalid params",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Unauthorized"
+          },
+          "422": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Publish (create or replace) a layer file",
+        "tags": [
+          "PublishTranslations"
+        ],
+        "x-permissions": [
+          "trs.translation.publish"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Translation Service",
+    "description": "Translation Service docs <br><br> <a href=\"/schemas/v1/openapi.json\">OpenAPI Document (json)</a>",
+    "version": "1.0",
+    "contact": {},
+    "license": {
+      "name": "UNLICENSED",
+      "url": "UNLICENSED"
+    }
+  },
+  "tags": [],
+  "servers": [
+    {
+      "url": "https://translation.retailsvc.com/api/v1"
+    },
+    {
+      "url": "https://translation.retailsvc-test.com/api/v1"
+    },
+    {
+      "url": "https://translation.retailsvc.dev/api/v1"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "access-token": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "description": "JWT Authorization header using the Bearer scheme."
+      }
+    },
+    "schemas": {
+      "BadRequestDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "enum": [
+              400
+            ]
+          },
+          "message": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "error": {
+            "type": "string",
+            "enum": [
+              "Bad Request"
+            ]
+          }
+        },
+        "required": [
+          "statusCode",
+          "message",
+          "error"
+        ]
+      },
+      "InternalServerErrorDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "enum": [
+              500
+            ]
+          },
+          "message": {
+            "type": "string",
+            "enum": [
+              "Internal Server Error"
+            ]
+          }
+        },
+        "required": [
+          "statusCode",
+          "message"
+        ]
+      },
+      "TranslationEntryDto": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The translated string. May contain {name} parameter placeholders.",
+            "example": "Pay {amount}"
+          },
+          "description": {
+            "type": "string",
+            "description": "Human readable intent of the key. Owned by the default layer.",
+            "example": "Label on the primary pay button."
+          },
+          "parameters": {
+            "description": "Named parameters referenced by the placeholders in value. Owned by the default layer.",
+            "example": [
+              "amount"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "value"
+        ]
+      },
+      "ResolvedTranslationFileDto": {
+        "type": "object",
+        "properties": {
+          "entries": {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": {
+              "$ref": "#/components/schemas/TranslationEntryDto"
+            }
+          },
+          "module": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{1,63}$",
+            "description": "The module scope.",
+            "example": "hiicheckout"
+          },
+          "langTag": {
+            "type": "string",
+            "description": "Full RFC 5646 language tag.",
+            "example": "en-US"
+          },
+          "layer": {
+            "type": "string",
+            "enum": [
+              "resolved"
+            ],
+            "description": "Resolved from the default and managed layers, plus the tenant layer on a tenant read."
+          }
+        },
+        "required": [
+          "entries",
+          "module",
+          "langTag",
+          "layer"
+        ]
+      },
+      "NotFoundDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "enum": [
+              404
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string",
+            "enum": [
+              "Not Found"
+            ]
+          }
+        },
+        "required": [
+          "statusCode",
+          "message",
+          "error"
+        ]
+      },
+      "LanguageTagsDto": {
+        "type": "object",
+        "properties": {
+          "moduleId": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{1,63}$",
+            "description": "The module scope.",
+            "example": "hiicheckout"
+          },
+          "languageTags": {
+            "description": "The published language tags of this module, sorted. Tenant languages are not listed.",
+            "example": [
+              "en-US",
+              "sv-SE"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "moduleId",
+          "languageTags"
+        ]
+      },
+      "PublishableLayer": {
+        "type": "string",
+        "enum": [
+          "default",
+          "managed",
+          "tenant"
+        ]
+      },
+      "PublishTranslationFileDto": {
+        "type": "object",
+        "properties": {
+          "entries": {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": {
+              "$ref": "#/components/schemas/TranslationEntryDto"
+            }
+          }
+        },
+        "required": [
+          "entries"
+        ]
+      }
+    }
+  }
+}
