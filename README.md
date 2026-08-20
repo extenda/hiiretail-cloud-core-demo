@@ -4,6 +4,7 @@
 - [Transaction Repository](./txr/README.md)
 - [Customer Controlled Configuration](./ccc/README.md)
 - [Translation Service](./trs/README.md)
+- [Entity Conditions Service](./ecs/README.md)
 
 ## Building a new demo UI
 

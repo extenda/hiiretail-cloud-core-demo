@@ -1,0 +1,906 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/conditions/{conditionId}/evaluate": {
+      "post": {
+        "description": "Resolves the condition from the caller's tenant catalog, falling back to the global catalog, then evaluates the item against the OPA sidecar.",
+        "operationId": "evaluate",
+        "parameters": [
+          {
+            "name": "conditionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaluateConditionRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemDecisionDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid params",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Evaluate a single item against one entity condition",
+        "tags": [
+          "ConditionEvaluation"
+        ],
+        "x-permissions": [
+          "ecs.condition.evaluate"
+        ]
+      }
+    },
+    "/project-restrictions/evaluate": {
+      "post": {
+        "description": "Fetches restrictions for the given project from CRS using the caller tenant, then evaluates the item against them via the OPA sidecar.",
+        "operationId": "evaluate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaluateProjectRestrictionsRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemDecisionDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid params",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Evaluate an item against live CRS project restrictions",
+        "tags": [
+          "ProjectRestrictionEvaluation"
+        ],
+        "x-permissions": [
+          "ecs.project-restriction.evaluate"
+        ]
+      }
+    },
+    "/entity-conditions": {
+      "get": {
+        "description": "Returns every global entity condition, which is read-only, plus the conditions the requesting tenant owns. On an id collision the global condition wins. The tenant is resolved from the bearer token and is never accepted as a parameter.",
+        "operationId": "listEntityConditions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EntityConditionViewDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid params",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "List entity conditions",
+        "tags": [
+          "EntityConditions"
+        ],
+        "x-permissions": [
+          "ecs.condition.read"
+        ]
+      }
+    },
+    "/entity-conditions/{id}": {
+      "get": {
+        "description": "Returns the global condition for the given id when one exists, otherwise the tenant's own. The tenant is resolved from the bearer token and is never accepted as a parameter.",
+        "operationId": "getEntityCondition",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Entity condition catalog key",
+            "schema": {
+              "maxLength": 64,
+              "example": "alcohol_se",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntityConditionViewDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid params",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Get an entity condition",
+        "tags": [
+          "EntityConditions"
+        ],
+        "x-permissions": [
+          "ecs.condition.read"
+        ]
+      },
+      "put": {
+        "description": "Creates or replaces the requesting tenant's condition for the given id. Global condition ids are reserved by the platform and are rejected with 409. The tenant is resolved from the bearer token and is never accepted as a parameter.",
+        "operationId": "upsertEntityCondition",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Entity condition catalog key",
+            "schema": {
+              "maxLength": 64,
+              "example": "alcohol_se",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertEntityConditionRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntityConditionViewDto"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntityConditionViewDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid params",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Unauthorized"
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Create or update a tenant-scoped entity condition",
+        "tags": [
+          "EntityConditions"
+        ],
+        "x-permissions": [
+          "ecs.condition.write"
+        ]
+      },
+      "delete": {
+        "description": "Deletes the requesting tenant's condition for the given id. Global conditions cannot be deleted and are rejected with 409. The tenant is resolved from the bearer token and is never accepted as a parameter.",
+        "operationId": "deleteEntityCondition",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Entity condition catalog key",
+            "schema": {
+              "maxLength": 64,
+              "example": "alcohol_se",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "Invalid params",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Delete a tenant-scoped entity condition",
+        "tags": [
+          "EntityConditions"
+        ],
+        "x-permissions": [
+          "ecs.condition.delete"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Entity Conditions Service API",
+    "description": "Entity Conditions Service API docs <br><br> <a href=\"/schemas/v1/openapi.json\">OpenAPI Document (json)</a> <br> <a href=\"/schemas/v1/evaluation-sidecar.openapi.json\">Evaluation Sidecar OpenAPI Document (json)</a>",
+    "version": "1.0",
+    "contact": {},
+    "license": {
+      "name": "UNLICENSED",
+      "url": "UNLICENSED"
+    }
+  },
+  "tags": [],
+  "servers": [
+    {
+      "url": "https://ecs-api.retailsvc.com/api/v1"
+    },
+    {
+      "url": "https://ecs-api.retailsvc-test.com/api/v1"
+    },
+    {
+      "url": "https://ecs-api.retailsvc.dev/api/v1"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "access-token": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "description": "JWT Authorization header using the Bearer scheme."
+      }
+    },
+    "schemas": {
+      "BadRequestDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "enum": [
+              400
+            ]
+          },
+          "message": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "error": {
+            "type": "string",
+            "enum": [
+              "Bad Request"
+            ]
+          }
+        },
+        "required": [
+          "statusCode",
+          "message",
+          "error"
+        ]
+      },
+      "InternalServerErrorDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "enum": [
+              500
+            ]
+          },
+          "message": {
+            "type": "string",
+            "enum": [
+              "Internal Server Error"
+            ]
+          }
+        },
+        "required": [
+          "statusCode",
+          "message"
+        ]
+      },
+      "EvaluateItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Caller-supplied item identifier echoed back in the decision",
+            "example": "item-1"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "CustomerContextDto": {
+        "type": "object",
+        "properties": {
+          "customer_age": {
+            "type": "integer",
+            "minimum": 0,
+            "nullable": true,
+            "description": "AGE_RESTRICTION input. Absent or null yields SOFT_DENY (`age_restriction.missing_context`).",
+            "example": 16
+          },
+          "licenses": {
+            "nullable": true,
+            "description": "LICENSE_REQUIREMENT input: the licenses the current customer holds, resolved by the caller. Each entry is the id of a license entity condition. Absent or null yields SOFT_DENY (`license_requirement.missing_context`); `[]` means the customer holds none.",
+            "example": [
+              "tobacco_license_se"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "EvaluationContextDto": {
+        "type": "object",
+        "properties": {
+          "customer": {
+            "description": "Customer-scoped evaluation inputs",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CustomerContextDto"
+              }
+            ]
+          }
+        }
+      },
+      "EvaluateConditionRequestDto": {
+        "type": "object",
+        "properties": {
+          "item": {
+            "description": "Item to evaluate against the resolved condition",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EvaluateItemDto"
+              }
+            ]
+          },
+          "context": {
+            "description": "Evaluation context passed to rule resolvers. Use `{}` when empty.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EvaluationContextDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "item",
+          "context"
+        ]
+      },
+      "Decision": {
+        "type": "string",
+        "enum": [
+          "ALLOW",
+          "SOFT_DENY",
+          "HARD_DENY"
+        ]
+      },
+      "RuleType": {
+        "type": "string",
+        "enum": [
+          "AGE_RESTRICTION",
+          "LICENSE_REQUIREMENT",
+          "PROJECT_RESTRICTION"
+        ]
+      },
+      "EvaluationResultDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Entity condition id",
+            "example": "alcohol_se"
+          },
+          "allow": {
+            "type": "boolean"
+          },
+          "decision": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Decision"
+              }
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true,
+            "description": "Machine-readable reason code; null when decision is ALLOW",
+            "example": "age_restriction.underage"
+          },
+          "rule": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RuleType"
+              }
+            ]
+          },
+          "source": {
+            "type": "string",
+            "description": "Rule source for project restriction results",
+            "example": "PROJECT_RESTRICTION"
+          },
+          "restriction": {
+            "type": "string",
+            "nullable": true,
+            "description": "Restriction target that produced this result (property name or itemId)",
+            "example": "ecoLabel"
+          }
+        },
+        "required": [
+          "allow",
+          "decision",
+          "reason",
+          "rule"
+        ]
+      },
+      "ItemDecisionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Matches the input item id",
+            "example": "item-1"
+          },
+          "allow": {
+            "type": "boolean",
+            "description": "True only when every entry in `results` has `allow` true (or `results` is empty)"
+          },
+          "results": {
+            "description": "One result entry per entity condition checked, whether ALLOW or DENY",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvaluationResultDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "allow",
+          "results"
+        ]
+      },
+      "NotFoundDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "enum": [
+              404
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string",
+            "enum": [
+              "Not Found"
+            ]
+          }
+        },
+        "required": [
+          "statusCode",
+          "message",
+          "error"
+        ]
+      },
+      "ProjectRestrictionItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Caller-supplied item identifier echoed back in the decision",
+            "example": "item-1"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "description": "Item attributes used by BOOLEAN/WHITELIST project restrictions"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "EvaluateProjectRestrictionsRequestDto": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "description": "CRS project id to fetch live restrictions for",
+            "example": "fc03c9aa-bbb9-413d-997a-be8e9f6f28f0"
+          },
+          "item": {
+            "description": "Item to evaluate against the project restrictions",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProjectRestrictionItemDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "projectId",
+          "item"
+        ]
+      },
+      "AgeRestrictionConditionValueDto": {
+        "type": "object",
+        "properties": {
+          "minimum_age": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Minimum age required to purchase",
+            "example": 18
+          }
+        },
+        "required": [
+          "minimum_age"
+        ]
+      },
+      "LicenseRequirementConditionValueDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "EntityConditionRule": {
+        "type": "string",
+        "enum": [
+          "AGE_RESTRICTION",
+          "LICENSE_REQUIREMENT"
+        ],
+        "description": "Rule discriminator naming which rule resolves this condition"
+      },
+      "ConditionScope": {
+        "type": "string",
+        "enum": [
+          "GLOBAL",
+          "TENANT"
+        ],
+        "description": "GLOBAL for platform-owned conditions, which are read-only; TENANT for conditions the requesting tenant owns and may change"
+      },
+      "EntityConditionViewDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Entity condition catalog key",
+            "example": "alcohol_se"
+          },
+          "rule": {
+            "description": "Rule discriminator naming which rule resolves this condition",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EntityConditionRule"
+              }
+            ]
+          },
+          "scope": {
+            "description": "GLOBAL for platform-owned conditions, which are read-only; TENANT for conditions the requesting tenant owns and may change",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConditionScope"
+              }
+            ]
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "condition_value": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AgeRestrictionConditionValueDto"
+              },
+              {
+                "$ref": "#/components/schemas/LicenseRequirementConditionValueDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "rule",
+          "scope",
+          "enabled",
+          "condition_value"
+        ]
+      },
+      "UpsertEntityConditionRequestDto": {
+        "type": "object",
+        "properties": {
+          "rule": {
+            "description": "Rule discriminator naming which rule resolves this condition",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EntityConditionRule"
+              }
+            ]
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Defaults to true when omitted",
+            "example": true
+          },
+          "condition_value": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AgeRestrictionConditionValueDto"
+              },
+              {
+                "$ref": "#/components/schemas/LicenseRequirementConditionValueDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "rule",
+          "condition_value"
+        ]
+      },
+      "ConflictDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "enum": [
+              409
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string",
+            "enum": [
+              "Conflict"
+            ]
+          }
+        },
+        "required": [
+          "statusCode",
+          "message",
+          "error"
+        ]
+      }
+    }
+  }
+}
