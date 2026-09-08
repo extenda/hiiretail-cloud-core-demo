@@ -1,4 +1,4 @@
-import type { ReadOutcome, Snapshot } from "../api/read";
+import type { ReadOutcome, Revalidators, Snapshot } from "../api/read";
 
 export class ReadError extends Error {
   status: number;
@@ -19,4 +19,17 @@ export function unwrap<T>(outcome: ReadOutcome<T>): Snapshot<T> {
   }
 
   return outcome.snapshot;
+}
+
+export async function readOrKeep<T>(
+  previous: Snapshot<T> | undefined,
+  load: (revalidators: Revalidators) => Promise<ReadOutcome<T>>,
+): Promise<Snapshot<T>> {
+  const outcome = await load({ ifNoneMatch: previous?.etag });
+  if (outcome.kind === "notModified") {
+    if (previous) return previous;
+    throw new ReadError(304, "Unexpected 304 on an unconditional request.");
+  }
+
+  return unwrap(outcome);
 }

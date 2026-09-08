@@ -1,8 +1,8 @@
-import type { TranslationEntryDto } from "../api/client";
-
-export const MODULE_ID_PATTERN = /^[a-z][a-z0-9-]{1,63}$/;
+import type { PluralCategory } from "../api/client";
 
 export const TENANT_ID_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/;
+
+export type PluralForms = Partial<Record<PluralCategory, string>>;
 
 export const LANG_TAGS = [
   "en-US",
@@ -13,89 +13,120 @@ export const LANG_TAGS = [
   "de-DE",
   "nl-NL",
   "fr-FR",
+  "uk-UA",
 ] as const;
 
 export const DEFAULT_LAYER_LANG_TAG = "en-US";
+
+export function languageName(langTag: string): string {
+  try {
+    return (
+      new Intl.DisplayNames(["en"], { type: "language" }).of(langTag) ?? langTag
+    );
+  } catch {
+    return langTag;
+  }
+}
 
 // A module may publish a tag this demo never listed, so the published ones lead.
 export function langTagChoices(published: readonly string[] = []): string[] {
   return [...new Set([...published, ...LANG_TAGS])].sort();
 }
 
-export interface KeyedEntry extends TranslationEntryDto {
-  key: string;
-}
+// The screen's default target: the first *published* tag that isn't the English source (there
+// is nothing to "translate" into English) — favoring what's already started over an arbitrary
+// alphabetical pick from the full candidate list — falling back to the first candidate
+// otherwise.
+export function defaultTargetLangTag(published: readonly string[] = []): string {
+  const startedFirst = [...published]
+    .filter((tag) => tag !== DEFAULT_LAYER_LANG_TAG)
+    .sort();
+  if (startedFirst.length > 0) return startedFirst[0];
 
-export function toKeyedEntries(entries: {
-  [key: string]: TranslationEntryDto;
-}): KeyedEntry[] {
-  return Object.entries(entries)
-    .map(([key, entry]) => ({ key, ...entry }))
-    .sort((a, b) => a.key.localeCompare(b.key));
-}
-
-export function toEntriesMap(entries: KeyedEntry[]): {
-  [key: string]: TranslationEntryDto;
-} {
-  return Object.fromEntries(
-    entries.map(({ key, value, description, parameters }) => [
-      key,
-      {
-        value,
-        ...(description ? { description } : {}),
-        ...(parameters?.length ? { parameters } : {}),
-      },
-    ]),
-  );
+  return LANG_TAGS.find((tag) => tag !== DEFAULT_LAYER_LANG_TAG) ?? DEFAULT_LAYER_LANG_TAG;
 }
 
 export function placeholdersIn(value: string): string[] {
   return [...value.matchAll(/\{([a-zA-Z0-9_]+)\}/g)].map((match) => match[1]);
 }
 
-export function undeclaredPlaceholders(entry: TranslationEntryDto): string[] {
-  const declared = new Set(entry.parameters ?? []);
-
-  return placeholdersIn(entry.value).filter((name) => !declared.has(name));
+// The service compiles plurals with CLDR at read time and never parses ICU itself (ADR-0006);
+// the browser's own Intl.PluralRules carries the same CLDR data, so it is what tells this UI
+// which categories a language tag actually needs, without hardcoding a CLDR table.
+export function requiredPluralCategories(langTag: string): PluralCategory[] {
+  try {
+    return new Intl.PluralRules(langTag).resolvedOptions()
+      .pluralCategories as PluralCategory[];
+  } catch {
+    return ["other"];
+  }
 }
 
-export function matchesFilter(entry: KeyedEntry, filter: string): boolean {
+export interface UploadedValue {
+  value: string;
+  forms?: PluralForms;
+}
+
+/*
+ * What the Translations screen's "Upload JSON" button accepts: the same flat, unwrapped shape
+ * the keysets/ directory now uses (`{ key: { value, plural?: { forms } } }`), a file already
+ * wrapped in `entries` (unwrapped here the same way the publish action does), or, for a
+ * translator who just has plain strings, `{ key: "value" }` with no plural support.
+ */
+export function parseUploadedTranslations(
+  text: string,
+): { entries: Record<string, UploadedValue> } | { error: string } {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return { error: "That file isn't valid JSON." };
+  }
+
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    return { error: "Expected a JSON object of translation keys." };
+  }
+
+  const record = parsed as Record<string, unknown>;
+  const body =
+    Object.keys(record).length === 1 &&
+    "entries" in record &&
+    typeof record.entries === "object" &&
+    record.entries !== null &&
+    !Array.isArray(record.entries)
+      ? (record.entries as Record<string, unknown>)
+      : record;
+
+  const entries: Record<string, UploadedValue> = {};
+  for (const [key, raw] of Object.entries(body)) {
+    if (typeof raw === "string") {
+      entries[key] = { value: raw };
+      continue;
+    }
+    if (typeof raw === "object" && raw !== null && typeof (raw as { value?: unknown }).value === "string") {
+      const entry = raw as { value: string; plural?: { forms?: PluralForms } };
+      entries[key] = { value: entry.value, forms: entry.plural?.forms };
+      continue;
+    }
+    return { error: `"${key}" isn't a string or a {value, plural} object.` };
+  }
+
+  return { entries };
+}
+
+export interface FilterableRow {
+  key: string;
+  source: string;
+  description?: string;
+}
+
+export function matchesFilter(row: FilterableRow, filter: string): boolean {
   const needle = filter.trim().toLowerCase();
   if (!needle) return true;
 
   return (
-    entry.key.toLowerCase().includes(needle) ||
-    entry.value.toLowerCase().includes(needle) ||
-    (entry.description ?? "").toLowerCase().includes(needle)
+    row.key.toLowerCase().includes(needle) ||
+    row.source.toLowerCase().includes(needle) ||
+    (row.description ?? "").toLowerCase().includes(needle)
   );
-}
-
-export type CompareStatus = "same" | "differs" | "leftOnly" | "rightOnly";
-
-export interface CompareRow {
-  key: string;
-  left?: string;
-  right?: string;
-  status: CompareStatus;
-}
-
-function statusOf(left?: string, right?: string): CompareStatus {
-  if (left === undefined) return "rightOnly";
-  if (right === undefined) return "leftOnly";
-
-  return left === right ? "same" : "differs";
-}
-
-export function compareEntries(
-  left: { [key: string]: TranslationEntryDto },
-  right: { [key: string]: TranslationEntryDto },
-): CompareRow[] {
-  const keys = [...new Set([...Object.keys(left), ...Object.keys(right)])].sort();
-
-  return keys.map((key) => ({
-    key,
-    left: left[key]?.value,
-    right: right[key]?.value,
-    status: statusOf(left[key]?.value, right[key]?.value),
-  }));
 }

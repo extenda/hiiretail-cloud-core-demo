@@ -1,0 +1,43 @@
+{
+  "service.header.title": {
+    "value": "Service Console",
+    "description": "Title in the app header."
+  },
+  "service.welcome.message": {
+    "value": "Hi {name}, here's what's running.",
+    "description": "Greeting on the service app's home screen.",
+    "parameters": ["name"]
+  },
+  "service.nav.backToLanding": {
+    "value": "Back to landing",
+    "description": "Link back to the landing app."
+  },
+  "service.status.active": {
+    "value": "Active",
+    "description": "Status badge for a running job."
+  },
+  "service.status.inactive": {
+    "value": "Inactive",
+    "description": "Status badge for a stopped job."
+  },
+  "service.jobs.count": {
+    "value": "{count} jobs queued",
+    "description": "Queue length shown on the dashboard. The flat value is the untranslated fallback; the plural forms are what actually renders.",
+    "parameters": ["count"],
+    "plural": {
+      "parameter": "count",
+      "forms": {
+        "one": "{count} job queued",
+        "other": "{count} jobs queued"
+      }
+    }
+  },
+  "service.error.generic": {
+    "value": "Something went wrong. Try again.",
+    "description": "Generic error banner."
+  },
+  "service.action.retry": {
+    "value": "Retry",
+    "description": "Retry button label."
+  }
+}

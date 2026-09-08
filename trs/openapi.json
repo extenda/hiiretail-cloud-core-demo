@@ -3,7 +3,7 @@
   "paths": {
     "/modules/{moduleId}/translations/{langTag}": {
       "get": {
-        "description": "Merges the `default` and `managed` layers, the managed value winning per key. Returns the keys published for this language tag alone: an untranslated key is absent, never null, and the response never falls back to `en-US`. Consumers fetch `en-US` alongside their target tag and fall back per missing key. Tenant overrides are not included. Anonymous and cacheable.",
+        "description": "Merges the `default` and `managed` layers, the managed value winning per key. Returns the keys published for this language tag alone: an untranslated key is absent, never null, and the response never falls back to `en-US`. Consumers fetch `en-US` alongside their target tag and fall back per missing key. Tenant overrides are not included. Anonymous and cacheable. Serves compiled ICU strings by default (`format=icu`); pass `format=raw` for the stored entry objects. Unknown query parameters are rejected.",
         "operationId": "getBaseTranslations",
         "parameters": [
           {
@@ -25,6 +25,15 @@
             "schema": {
               "example": "en-US",
               "type": "string"
+            }
+          },
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "description": "Representation to serve. `icu` compiles each value to an ICU message string; `raw` returns the stored entry objects with their declarations.",
+            "schema": {
+              "$ref": "#/components/schemas/ReadFormat"
             }
           },
           {
@@ -52,7 +61,21 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ResolvedTranslationFileDto"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/IcuTranslationFileDto"
+                    },
+                    {
+                      "$ref": "#/components/schemas/RawTranslationFileDto"
+                    }
+                  ],
+                  "discriminator": {
+                    "propertyName": "format",
+                    "mapping": {
+                      "icu": "#/components/schemas/IcuTranslationFileDto",
+                      "raw": "#/components/schemas/RawTranslationFileDto"
+                    }
+                  }
                 }
               }
             }
@@ -185,7 +208,7 @@
     },
     "/tenants/{tenantId}/modules/{moduleId}/translations/{langTag}": {
       "get": {
-        "description": "Merges the `default`, `managed` and `tenant` layers in that order, so a tenant override wins over the managed copy and the declarations authored in `default` survive. A tenant with nothing published reads the base file rather than a 404. Anonymous and cacheable.",
+        "description": "Merges the `default`, `managed` and `tenant` layers in that order, so a tenant override wins over the managed copy and the declarations authored in `default` survive. A tenant with nothing published reads the base file rather than a 404. Anonymous and cacheable. Serves compiled ICU strings by default (`format=icu`); pass `format=raw` for the stored entry objects. Unknown query parameters are rejected.",
         "operationId": "getTenantTranslations",
         "parameters": [
           {
@@ -221,6 +244,15 @@
             }
           },
           {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "description": "Representation to serve. `icu` compiles each value to an ICU message string; `raw` returns the stored entry objects with their declarations.",
+            "schema": {
+              "$ref": "#/components/schemas/ReadFormat"
+            }
+          },
+          {
             "name": "if-none-match",
             "required": false,
             "in": "header",
@@ -245,7 +277,21 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ResolvedTranslationFileDto"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/IcuTranslationFileDto"
+                    },
+                    {
+                      "$ref": "#/components/schemas/RawTranslationFileDto"
+                    }
+                  ],
+                  "discriminator": {
+                    "propertyName": "format",
+                    "mapping": {
+                      "icu": "#/components/schemas/IcuTranslationFileDto",
+                      "raw": "#/components/schemas/RawTranslationFileDto"
+                    }
+                  }
                 }
               }
             }
@@ -390,6 +436,168 @@
           "trs.translation.publish"
         ]
       }
+    },
+    "/modules/{moduleId}/coverage": {
+      "get": {
+        "description": "Per language tag the module has published: how many keys its English `default` file declares, how many this tag has a value for and how many it does not. Counts only — the per key rows are a separate call, so the landing view stays cheap. Language tags come from the `default` and `managed` layers, never from a tenant's overrides. A module with no English `default` file answers 404: that file is the key set, so there is nothing to measure against.",
+        "operationId": "getModuleCoverage",
+        "parameters": [
+          {
+            "name": "moduleId",
+            "required": true,
+            "in": "path",
+            "description": "The module scope.",
+            "schema": {
+              "pattern": "^[a-z][a-z0-9-]{1,63}$",
+              "example": "hiicheckout",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModuleCoverageDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid params",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Get translation coverage counts per language tag",
+        "tags": [
+          "Coverage"
+        ],
+        "x-permissions": [
+          "trs.stats.read"
+        ]
+      }
+    },
+    "/modules/{moduleId}/coverage/{langTag}": {
+      "get": {
+        "description": "A row per key: whether this tag has a value for it, whether the `default` layer still declares it, which parameters the translation leaves unreferenced, which plural forms this tag still owes, whether the English copy changed after the value was published, and which layer supplied it. A language tag nothing is published for is still a full report with every key missing, rather than a 404 — the rows are derived from the key set, not from this tag's file. Who last edited a key comes from the audit log, not from here.",
+        "operationId": "getLanguageTagCoverage",
+        "parameters": [
+          {
+            "name": "moduleId",
+            "required": true,
+            "in": "path",
+            "description": "The module scope.",
+            "schema": {
+              "pattern": "^[a-z][a-z0-9-]{1,63}$",
+              "example": "hiicheckout",
+              "type": "string"
+            }
+          },
+          {
+            "name": "langTag",
+            "required": true,
+            "in": "path",
+            "description": "Full RFC 5646 language tag.",
+            "schema": {
+              "example": "en-US",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LanguageTagKeyCoverageDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid params",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Get the per key translation status of one language tag",
+        "tags": [
+          "Coverage"
+        ],
+        "x-permissions": [
+          "trs.stats.read"
+        ]
+      }
     }
   },
   "info": {
@@ -473,6 +681,96 @@
           "message"
         ]
       },
+      "IcuTranslationFileDto": {
+        "type": "object",
+        "properties": {
+          "module": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{1,63}$",
+            "description": "The module scope.",
+            "example": "hiicheckout"
+          },
+          "langTag": {
+            "type": "string",
+            "description": "Full RFC 5646 language tag.",
+            "example": "en-US"
+          },
+          "layer": {
+            "type": "string",
+            "enum": [
+              "resolved"
+            ],
+            "description": "Resolved from the default and managed layers, plus the tenant layer on a tenant read."
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "icu"
+            ],
+            "description": "Plain ICU message strings compiled from the stored entries. The default when format is omitted."
+          },
+          "entries": {
+            "type": "object",
+            "description": "Each key maps to a compiled ICU message string. `description`, `parameters` and `plural` are dropped.",
+            "example": {
+              "cart.count": "{count, plural, one {{count} item} other {{count} items}}"
+            },
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "module",
+          "langTag",
+          "layer",
+          "format",
+          "entries"
+        ]
+      },
+      "TranslationPluralDto": {
+        "type": "object",
+        "properties": {
+          "parameter": {
+            "type": "string",
+            "description": "The counting parameter. Owned by the default layer — the service copies it into every other layer at publish.",
+            "example": "count"
+          },
+          "forms": {
+            "type": "object",
+            "description": "Copy for each plural category required by the language tag.",
+            "example": {
+              "one": "{count} item",
+              "other": "{count} items"
+            },
+            "minProperties": 1,
+            "properties": {
+              "zero": {
+                "type": "string"
+              },
+              "one": {
+                "type": "string"
+              },
+              "two": {
+                "type": "string"
+              },
+              "few": {
+                "type": "string"
+              },
+              "many": {
+                "type": "string"
+              },
+              "other": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "forms"
+        ]
+      },
       "TranslationEntryDto": {
         "type": "object",
         "properties": {
@@ -496,22 +794,23 @@
             "items": {
               "type": "string"
             }
+          },
+          "plural": {
+            "description": "Structured plural copy. `parameter` is owned by the default layer; other layers supply `forms` alone.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TranslationPluralDto"
+              }
+            ]
           }
         },
         "required": [
           "value"
         ]
       },
-      "ResolvedTranslationFileDto": {
+      "RawTranslationFileDto": {
         "type": "object",
         "properties": {
-          "entries": {
-            "type": "object",
-            "minProperties": 1,
-            "additionalProperties": {
-              "$ref": "#/components/schemas/TranslationEntryDto"
-            }
-          },
           "module": {
             "type": "string",
             "pattern": "^[a-z][a-z0-9-]{1,63}$",
@@ -529,13 +828,34 @@
               "resolved"
             ],
             "description": "Resolved from the default and managed layers, plus the tenant layer on a tenant read."
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "raw"
+            ],
+            "description": "The stored entry objects with their declarations — the editor and tooling contract."
+          },
+          "entries": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/TranslationEntryDto"
+            }
           }
         },
         "required": [
-          "entries",
           "module",
           "langTag",
-          "layer"
+          "layer",
+          "format",
+          "entries"
+        ]
+      },
+      "ReadFormat": {
+        "type": "string",
+        "enum": [
+          "icu",
+          "raw"
         ]
       },
       "NotFoundDto": {
@@ -610,6 +930,172 @@
         },
         "required": [
           "entries"
+        ]
+      },
+      "LanguageTagCoverageDto": {
+        "type": "object",
+        "properties": {
+          "langTag": {
+            "type": "string",
+            "description": "Full RFC 5646 language tag.",
+            "example": "en-US"
+          },
+          "totalKeys": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Keys the module's English default file declares.",
+            "example": 42
+          },
+          "translatedKeys": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Declared keys this language tag has a value for.",
+            "example": 37
+          },
+          "missingKeys": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Declared keys this language tag has no value for.",
+            "example": 5
+          }
+        },
+        "required": [
+          "langTag",
+          "totalKeys",
+          "translatedKeys",
+          "missingKeys"
+        ]
+      },
+      "ModuleCoverageDto": {
+        "type": "object",
+        "properties": {
+          "moduleId": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{1,63}$",
+            "description": "The module scope.",
+            "example": "hiicheckout"
+          },
+          "languageTags": {
+            "description": "One entry per published language tag, sorted. Always carries at least `en-US`, which is the English default file this coverage is measured against.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LanguageTagCoverageDto"
+            }
+          }
+        },
+        "required": [
+          "moduleId",
+          "languageTags"
+        ]
+      },
+      "PluralCategory": {
+        "type": "string",
+        "enum": [
+          "zero",
+          "one",
+          "two",
+          "few",
+          "many",
+          "other"
+        ],
+        "description": "Plural categories this language tag requires that the translation supplies no form for. A translation may be published with a value and no plural at all, and a read then serves that flat value with no plural selection — the key looks translated while no count renders correctly. Empty for a key the default layer declares no plural for, and for an untranslated key."
+      },
+      "BaseLayer": {
+        "type": "string",
+        "enum": [
+          "default",
+          "managed"
+        ],
+        "description": "Which layer supplied the value, or `null` when none did. The tenant layer is never reported: coverage is the Extenda view of what the managed layer covers."
+      },
+      "KeyCoverageDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "The translation key.",
+            "example": "checkout.button.pay"
+          },
+          "translated": {
+            "type": "boolean",
+            "description": "This language tag has a value for the key."
+          },
+          "orphan": {
+            "type": "boolean",
+            "description": "The default layer no longer declares this key. A read still serves it, by design — this is where it becomes visible so it can be cleaned up."
+          },
+          "unusedParameters": {
+            "description": "Parameters the key declares that the translation never references — a placeholder it dropped. Read over the whole entry, plural forms included, since that is where a plural translation carries its counting parameter. Empty for an untranslated key, which has no copy to check.",
+            "example": [
+              "amount"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "missingPluralForms": {
+            "type": "array",
+            "description": "Plural categories this language tag requires that the translation supplies no form for. A translation may be published with a value and no plural at all, and a read then serves that flat value with no plural selection — the key looks translated while no count renders correctly. Empty for a key the default layer declares no plural for, and for an untranslated key.",
+            "example": [
+              "few",
+              "many"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/PluralCategory"
+            }
+          },
+          "stale": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "The English copy changed after this value was published — the plural forms of the key among it, not only the flat value. `null` when it cannot be told: nothing is translated here, the key is an orphan with no English source left to compare, or the value predates the source fingerprint the publish path now stamps. Each of those resolves on that entry’s next publish."
+          },
+          "layer": {
+            "nullable": true,
+            "description": "Which layer supplied the value, or `null` when none did. The tenant layer is never reported: coverage is the Extenda view of what the managed layer covers.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BaseLayer"
+              }
+            ]
+          }
+        },
+        "required": [
+          "key",
+          "translated",
+          "orphan",
+          "unusedParameters",
+          "missingPluralForms",
+          "stale",
+          "layer"
+        ]
+      },
+      "LanguageTagKeyCoverageDto": {
+        "type": "object",
+        "properties": {
+          "moduleId": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{1,63}$",
+            "description": "The module scope.",
+            "example": "hiicheckout"
+          },
+          "langTag": {
+            "type": "string",
+            "description": "Full RFC 5646 language tag.",
+            "example": "en-US"
+          },
+          "keys": {
+            "description": "One row per key, sorted by key: every key the default layer declares, plus any orphan this language tag still holds.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KeyCoverageDto"
+            }
+          }
+        },
+        "required": [
+          "moduleId",
+          "langTag",
+          "keys"
         ]
       }
     }

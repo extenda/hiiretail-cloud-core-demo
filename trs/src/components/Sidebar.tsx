@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { NavLink } from "react-router-dom";
+import { useSelectedApp } from "../hooks/useSelectedApp";
 
 interface NavEntry {
   to: string;
@@ -7,28 +8,17 @@ interface NavEntry {
   icon: ReactNode;
 }
 
-const ReadIcon = (
+const ModulesIcon = (
+  <path d="M4 4.5h5v5H4v-5Zm7 0h5v5h-5v-5ZM4 11.5h5v5H4v-5Zm7 0h5v5h-5v-5Z" />
+);
+
+const TranslationsIcon = (
   <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h5A1.5 1.5 0 0 1 12 5.5v9A1.5 1.5 0 0 0 10.5 13h-5A1.5 1.5 0 0 1 4 11.5v-6Zm8 0A1.5 1.5 0 0 1 13.5 4h1A1.5 1.5 0 0 1 16 5.5v6A1.5 1.5 0 0 1 14.5 13h-1" />
-);
-
-const PublishIcon = (
-  <path d="M10 3.5v9m0-9L6.5 7M10 3.5 13.5 7M4 14.5h12" />
-);
-
-const LayersIcon = (
-  <path d="M10 3.5 3.5 7l6.5 3.5L16.5 7 10 3.5Zm6.5 6L10 13 3.5 9.5m13 3.5L10 16.5 3.5 13" />
 );
 
 const KeyIcon = (
   <path d="M12.5 3.5a4 4 0 1 0-3.8 5.2L4 13.4V16h2.6l.9-.9v-1.3h1.3l.9-.9v-1.3h1.3l1-1a4 4 0 0 0 .5-7.1Z" />
 );
-
-const NAV: NavEntry[] = [
-  { to: "/", label: "Read translations", icon: ReadIcon },
-  { to: "/publish", label: "Publish layer", icon: PublishIcon },
-  { to: "/how-it-resolves", label: "How it resolves", icon: LayersIcon },
-  { to: "/tokens", label: "Tokens", icon: KeyIcon },
-];
 
 function NavIcon({ children }: { children: ReactNode }) {
   return (
@@ -49,6 +39,17 @@ function NavIcon({ children }: { children: ReactNode }) {
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const [selectedModuleId] = useSelectedApp();
+
+  const NAV: NavEntry[] = [
+    { to: "/", label: "Apps", icon: ModulesIcon },
+    {
+      to: `/translations/${selectedModuleId}`,
+      label: "Translations",
+      icon: TranslationsIcon,
+    },
+    { to: "/tokens", label: "Tokens", icon: KeyIcon },
+  ];
 
   return (
     <nav

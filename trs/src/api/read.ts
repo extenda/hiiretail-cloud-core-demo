@@ -1,4 +1,4 @@
-import type { LanguageTagsDto, ResolvedTranslationFileDto } from "./client";
+import type { LanguageTagsDto, RawTranslationFileDto } from "./client";
 
 // Hand-written rather than using the generated SDK: reads are anonymous, and the
 // demo needs the 304 revalidation path plus the raw ETag / Last-Modified headers,
@@ -31,7 +31,10 @@ export interface ReadScope {
   tenantId?: string;
 }
 
-export type TranslationsOutcome = ReadOutcome<ResolvedTranslationFileDto>;
+// Always requested as format=raw (value + description + parameters + plural) — the editor,
+// the comparison view and the coverage narrative all need the full entry, never the compiled
+// ICU string the server defaults to.
+export type TranslationsOutcome = ReadOutcome<RawTranslationFileDto>;
 export type LanguageTagsOutcome = ReadOutcome<LanguageTagsDto>;
 
 const segment = encodeURIComponent;
@@ -39,7 +42,7 @@ const segment = encodeURIComponent;
 function translationsPath({ moduleId, langTag, tenantId }: ReadScope): string {
   const scope = tenantId ? `/api/tenants/${segment(tenantId)}` : "/api";
 
-  return `${scope}/modules/${segment(moduleId)}/translations/${segment(langTag)}`;
+  return `${scope}/modules/${segment(moduleId)}/translations/${segment(langTag)}?format=raw`;
 }
 
 function headersFrom(response: Response): ReadHeaders {
@@ -80,7 +83,10 @@ async function read<T>(
   path: string,
   revalidators: Revalidators,
 ): Promise<ReadOutcome<T>> {
+  // no-store so max-age on the public read cannot hide a 304/200; we send If-None-Match
+  // ourselves from the last snapshot and need the origin to see it.
   const response = await fetch(path, {
+    cache: "no-store",
     headers: revalidationHeaders(revalidators),
   });
 

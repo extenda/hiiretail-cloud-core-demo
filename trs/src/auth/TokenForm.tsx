@@ -5,7 +5,8 @@ import { BrandMark } from "../components/BrandMark";
 import { API_ENVIRONMENT, API_HOST } from "../lib/environment";
 
 export function TokenForm() {
-  const { continueAnonymously } = useAuth();
+  const { slots, continueAnonymously, enter } = useAuth();
+  const held = SLOT_IDS.filter((slot) => slots[slot] !== undefined);
 
   return (
     <div className="flex min-h-screen items-start justify-center bg-canvas px-4 py-10">
@@ -16,8 +17,8 @@ export function TokenForm() {
             Translation Service
           </h1>
           <p className="mt-1 text-sm text-stone-500">
-            Reading needs no token. Publishing needs one per layer — paste the
-            ones you already have.
+            Paste a token to save translations. You can still browse without
+            one.
           </p>
           <p className="mt-1 font-mono text-xs text-stone-400">
             {API_ENVIRONMENT} · {API_HOST}
@@ -30,27 +31,25 @@ export function TokenForm() {
           ))}
         </div>
 
-        <div className="mt-4 rounded-lg border border-stone-200 bg-white/60 p-4 text-center">
-          <p className="text-xs text-stone-500">
-            Any staff JWT for this environment works — copy the{" "}
-            <span className="font-mono">Authorization</span> header your
-            Operations Hub session sends. A machine client token works too; the
-            layer a token may publish is decided by its tenant and permissions,
-            not by its type.
-          </p>
+        <div className="mt-4 text-center">
+          {held.length > 0 && (
+            <button
+              type="button"
+              onClick={enter}
+              className="w-full rounded-lg bg-brand-500 px-3.5 py-2 text-sm font-medium text-white hover:bg-brand-600"
+            >
+              Continue
+            </button>
+          )}
+
           <button
             type="button"
             onClick={continueAnonymously}
-            className="mt-2 text-xs font-medium text-brand-700 underline decoration-brand-300 underline-offset-2 hover:text-brand-800"
+            className="mt-3 text-xs font-medium text-brand-700 underline decoration-brand-300 underline-offset-2 hover:text-brand-800"
           >
-            Continue without a token
+            Continue without signing in
           </button>
         </div>
-
-        <p className="mt-4 text-center text-xs text-stone-400">
-          Tokens stay in this browser's <span className="font-mono">localStorage</span>{" "}
-          and are sent only to {API_HOST}.
-        </p>
       </div>
     </div>
   );

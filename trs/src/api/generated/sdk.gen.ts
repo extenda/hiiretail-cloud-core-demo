@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetBaseTranslationsData, GetBaseTranslationsErrors, GetBaseTranslationsResponses, GetLanguageTagsData, GetLanguageTagsErrors, GetLanguageTagsResponses, GetTenantTranslationsData, GetTenantTranslationsErrors, GetTenantTranslationsResponses, PublishLayerFileData, PublishLayerFileErrors, PublishLayerFileResponses } from './types.gen';
+import type { GetBaseTranslationsData, GetBaseTranslationsErrors, GetBaseTranslationsResponses, GetLanguageTagCoverageData, GetLanguageTagCoverageErrors, GetLanguageTagCoverageResponses, GetLanguageTagsData, GetLanguageTagsErrors, GetLanguageTagsResponses, GetModuleCoverageData, GetModuleCoverageErrors, GetModuleCoverageResponses, GetTenantTranslationsData, GetTenantTranslationsErrors, GetTenantTranslationsResponses, PublishLayerFileData, PublishLayerFileErrors, PublishLayerFileResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -21,7 +21,7 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 /**
  * Get the base translation file (default + managed)
  *
- * Merges the `default` and `managed` layers, the managed value winning per key. Returns the keys published for this language tag alone: an untranslated key is absent, never null, and the response never falls back to `en-US`. Consumers fetch `en-US` alongside their target tag and fall back per missing key. Tenant overrides are not included. Anonymous and cacheable.
+ * Merges the `default` and `managed` layers, the managed value winning per key. Returns the keys published for this language tag alone: an untranslated key is absent, never null, and the response never falls back to `en-US`. Consumers fetch `en-US` alongside their target tag and fall back per missing key. Tenant overrides are not included. Anonymous and cacheable. Serves compiled ICU strings by default (`format=icu`); pass `format=raw` for the stored entry objects. Unknown query parameters are rejected.
  */
 export const getBaseTranslations = <ThrowOnError extends boolean = false>(options: Options<GetBaseTranslationsData, ThrowOnError>) => (options.client ?? client).get<GetBaseTranslationsResponses, GetBaseTranslationsErrors, ThrowOnError>({ url: '/modules/{moduleId}/translations/{langTag}', ...options });
 
@@ -35,7 +35,7 @@ export const getLanguageTags = <ThrowOnError extends boolean = false>(options: O
 /**
  * Get the tenant-resolved translation file (default + managed + tenant)
  *
- * Merges the `default`, `managed` and `tenant` layers in that order, so a tenant override wins over the managed copy and the declarations authored in `default` survive. A tenant with nothing published reads the base file rather than a 404. Anonymous and cacheable.
+ * Merges the `default`, `managed` and `tenant` layers in that order, so a tenant override wins over the managed copy and the declarations authored in `default` survive. A tenant with nothing published reads the base file rather than a 404. Anonymous and cacheable. Serves compiled ICU strings by default (`format=icu`); pass `format=raw` for the stored entry objects. Unknown query parameters are rejected.
  */
 export const getTenantTranslations = <ThrowOnError extends boolean = false>(options: Options<GetTenantTranslationsData, ThrowOnError>) => (options.client ?? client).get<GetTenantTranslationsResponses, GetTenantTranslationsErrors, ThrowOnError>({ url: '/tenants/{tenantId}/modules/{moduleId}/translations/{langTag}', ...options });
 
@@ -52,4 +52,26 @@ export const publishLayerFile = <ThrowOnError extends boolean = false>(options: 
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * Get translation coverage counts per language tag
+ *
+ * Per language tag the module has published: how many keys its English `default` file declares, how many this tag has a value for and how many it does not. Counts only — the per key rows are a separate call, so the landing view stays cheap. Language tags come from the `default` and `managed` layers, never from a tenant's overrides. A module with no English `default` file answers 404: that file is the key set, so there is nothing to measure against.
+ */
+export const getModuleCoverage = <ThrowOnError extends boolean = false>(options: Options<GetModuleCoverageData, ThrowOnError>) => (options.client ?? client).get<GetModuleCoverageResponses, GetModuleCoverageErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/modules/{moduleId}/coverage',
+    ...options
+});
+
+/**
+ * Get the per key translation status of one language tag
+ *
+ * A row per key: whether this tag has a value for it, whether the `default` layer still declares it, which parameters the translation leaves unreferenced, which plural forms this tag still owes, whether the English copy changed after the value was published, and which layer supplied it. A language tag nothing is published for is still a full report with every key missing, rather than a 404 — the rows are derived from the key set, not from this tag's file. Who last edited a key comes from the audit log, not from here.
+ */
+export const getLanguageTagCoverage = <ThrowOnError extends boolean = false>(options: Options<GetLanguageTagCoverageData, ThrowOnError>) => (options.client ?? client).get<GetLanguageTagCoverageResponses, GetLanguageTagCoverageErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/modules/{moduleId}/coverage/{langTag}',
+    ...options
 });

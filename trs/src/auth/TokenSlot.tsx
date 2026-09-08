@@ -113,7 +113,7 @@ export function TokenSlot({ slot }: { slot: SlotId }) {
             onChange={(e) => setDraft(e.target.value)}
             rows={3}
             spellCheck={false}
-            placeholder="eyJhbGciOi… — paste the whole JWT, with or without the Bearer prefix"
+            placeholder="Paste the token"
             className="w-full rounded-lg border border-stone-300 bg-white px-3 py-2 font-mono text-xs text-stone-900 placeholder:text-stone-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none"
           />
           <div className="mt-2 flex gap-2">

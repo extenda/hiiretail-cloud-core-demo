@@ -1,19 +1,24 @@
 import type { PublishableLayer } from "../api/client";
 import type { SlotId } from "./storage";
 
+export type WritableLayer = "managed" | "tenant";
+
 interface SlotMeta {
   label: string;
   hint: string;
+  short: string;
 }
 
 export const SLOT_META: Record<SlotId, SlotMeta> = {
   extenda: {
-    label: "Extenda tenant token",
-    hint: "Publishes the global managed layer. Needs trs.translation.publish and a token belonging to Extenda.",
+    label: "Extenda",
+    short: "Global",
+    hint: "Saves the global copy.",
   },
   tenant: {
-    label: "Customer tenant token",
-    hint: "Publishes that tenant's own overrides. Needs trs.translation.publish; the tenant comes from the token.",
+    label: "Customer",
+    short: "Customer",
+    hint: "Saves this customer's own wording.",
   },
 };
 
@@ -22,4 +27,12 @@ export function slotForLayer(layer: PublishableLayer): SlotId | undefined {
   if (layer === "tenant") return "tenant";
 
   return undefined;
+}
+
+export function layerForSlot(slot: SlotId): WritableLayer {
+  return slot === "extenda" ? "managed" : "tenant";
+}
+
+export function layerLabel(layer: WritableLayer): string {
+  return layer === "managed" ? "Global copy" : "This tenant";
 }

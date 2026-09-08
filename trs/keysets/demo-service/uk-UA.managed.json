@@ -1,0 +1,34 @@
+{
+  "service.header.title": {
+    "value": "Консоль сервісу"
+  },
+  "service.welcome.message": {
+    "value": "Привіт, {name}, ось що зараз запущено."
+  },
+  "service.nav.backToLanding": {
+    "value": "Назад на головну"
+  },
+  "service.status.active": {
+    "value": "Активний"
+  },
+  "service.status.inactive": {
+    "value": "Неактивний"
+  },
+  "service.jobs.count": {
+    "value": "{count} завдань у черзі",
+    "plural": {
+      "forms": {
+        "one": "{count} завдання в черзі",
+        "few": "{count} завдання в черзі",
+        "many": "{count} завдань у черзі",
+        "other": "{count} завдання в черзі"
+      }
+    }
+  },
+  "service.error.generic": {
+    "value": "Щось пішло не так. Спробуйте ще раз."
+  },
+  "service.action.retry": {
+    "value": "Повторити"
+  }
+}

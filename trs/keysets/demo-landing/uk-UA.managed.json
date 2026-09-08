@@ -1,0 +1,31 @@
+{
+  "landing.hero.title": {
+    "value": "Ласкаво просимо до демо Hii Retail"
+  },
+  "landing.hero.subtitle": {
+    "value": "Короткий огляд того, що бачить орендар у перший день."
+  },
+  "landing.nav.language": {
+    "value": "Мова"
+  },
+  "landing.cta.continue": {
+    "value": "Перейти до сервісного застосунку"
+  },
+  "landing.visits.count": {
+    "value": "{count} візитів сьогодні",
+    "plural": {
+      "forms": {
+        "one": "{count} візит сьогодні",
+        "few": "{count} візити сьогодні",
+        "many": "{count} візитів сьогодні",
+        "other": "{count} візита сьогодні"
+      }
+    }
+  },
+  "landing.footer.copyright": {
+    "value": "© {year} Hii Retail"
+  },
+  "landing.error.notFound": {
+    "value": "Ми не змогли знайти цю сторінку."
+  }
+}

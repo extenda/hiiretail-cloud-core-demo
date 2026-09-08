@@ -15,6 +15,49 @@ export type InternalServerErrorDto = {
     message: 'Internal Server Error';
 };
 
+export type IcuTranslationFileDto = {
+    /**
+     * The module scope.
+     */
+    module: string;
+    /**
+     * Full RFC 5646 language tag.
+     */
+    langTag: string;
+    /**
+     * Resolved from the default and managed layers, plus the tenant layer on a tenant read.
+     */
+    layer: 'resolved';
+    /**
+     * Plain ICU message strings compiled from the stored entries. The default when format is omitted.
+     */
+    format: 'icu';
+    /**
+     * Each key maps to a compiled ICU message string. `description`, `parameters` and `plural` are dropped.
+     */
+    entries: {
+        [key: string]: string;
+    };
+};
+
+export type TranslationPluralDto = {
+    /**
+     * The counting parameter. Owned by the default layer — the service copies it into every other layer at publish.
+     */
+    parameter?: string;
+    /**
+     * Copy for each plural category required by the language tag.
+     */
+    forms: {
+        zero?: string;
+        one?: string;
+        two?: string;
+        few?: string;
+        many?: string;
+        other?: string;
+    };
+};
+
 export type TranslationEntryDto = {
     /**
      * The translated string. May contain {name} parameter placeholders.
@@ -28,12 +71,13 @@ export type TranslationEntryDto = {
      * Named parameters referenced by the placeholders in value. Owned by the default layer.
      */
     parameters?: Array<string>;
+    /**
+     * Structured plural copy. `parameter` is owned by the default layer; other layers supply `forms` alone.
+     */
+    plural?: TranslationPluralDto;
 };
 
-export type ResolvedTranslationFileDto = {
-    entries: {
-        [key: string]: TranslationEntryDto;
-    };
+export type RawTranslationFileDto = {
     /**
      * The module scope.
      */
@@ -46,7 +90,16 @@ export type ResolvedTranslationFileDto = {
      * Resolved from the default and managed layers, plus the tenant layer on a tenant read.
      */
     layer: 'resolved';
+    /**
+     * The stored entry objects with their declarations — the editor and tooling contract.
+     */
+    format: 'raw';
+    entries: {
+        [key: string]: TranslationEntryDto;
+    };
 };
+
+export type ReadFormat = 'icu' | 'raw';
 
 export type NotFoundDto = {
     statusCode: 404;
@@ -73,6 +126,92 @@ export type PublishTranslationFileDto = {
     };
 };
 
+export type LanguageTagCoverageDto = {
+    /**
+     * Full RFC 5646 language tag.
+     */
+    langTag: string;
+    /**
+     * Keys the module's English default file declares.
+     */
+    totalKeys: number;
+    /**
+     * Declared keys this language tag has a value for.
+     */
+    translatedKeys: number;
+    /**
+     * Declared keys this language tag has no value for.
+     */
+    missingKeys: number;
+};
+
+export type ModuleCoverageDto = {
+    /**
+     * The module scope.
+     */
+    moduleId: string;
+    /**
+     * One entry per published language tag, sorted. Always carries at least `en-US`, which is the English default file this coverage is measured against.
+     */
+    languageTags: Array<LanguageTagCoverageDto>;
+};
+
+/**
+ * Plural categories this language tag requires that the translation supplies no form for. A translation may be published with a value and no plural at all, and a read then serves that flat value with no plural selection — the key looks translated while no count renders correctly. Empty for a key the default layer declares no plural for, and for an untranslated key.
+ */
+export type PluralCategory = 'zero' | 'one' | 'two' | 'few' | 'many' | 'other';
+
+/**
+ * Which layer supplied the value, or `null` when none did. The tenant layer is never reported: coverage is the Extenda view of what the managed layer covers.
+ */
+export type BaseLayer = 'default' | 'managed';
+
+export type KeyCoverageDto = {
+    /**
+     * The translation key.
+     */
+    key: string;
+    /**
+     * This language tag has a value for the key.
+     */
+    translated: boolean;
+    /**
+     * The default layer no longer declares this key. A read still serves it, by design — this is where it becomes visible so it can be cleaned up.
+     */
+    orphan: boolean;
+    /**
+     * Parameters the key declares that the translation never references — a placeholder it dropped. Read over the whole entry, plural forms included, since that is where a plural translation carries its counting parameter. Empty for an untranslated key, which has no copy to check.
+     */
+    unusedParameters: Array<string>;
+    /**
+     * Plural categories this language tag requires that the translation supplies no form for. A translation may be published with a value and no plural at all, and a read then serves that flat value with no plural selection — the key looks translated while no count renders correctly. Empty for a key the default layer declares no plural for, and for an untranslated key.
+     */
+    missingPluralForms: Array<PluralCategory>;
+    /**
+     * The English copy changed after this value was published — the plural forms of the key among it, not only the flat value. `null` when it cannot be told: nothing is translated here, the key is an orphan with no English source left to compare, or the value predates the source fingerprint the publish path now stamps. Each of those resolves on that entry’s next publish.
+     */
+    stale: boolean | null;
+    /**
+     * Which layer supplied the value, or `null` when none did. The tenant layer is never reported: coverage is the Extenda view of what the managed layer covers.
+     */
+    layer: BaseLayer | null;
+};
+
+export type LanguageTagKeyCoverageDto = {
+    /**
+     * The module scope.
+     */
+    moduleId: string;
+    /**
+     * Full RFC 5646 language tag.
+     */
+    langTag: string;
+    /**
+     * One row per key, sorted by key: every key the default layer declares, plus any orphan this language tag still holds.
+     */
+    keys: Array<KeyCoverageDto>;
+};
+
 export type GetBaseTranslationsData = {
     body?: never;
     headers?: {
@@ -95,7 +234,12 @@ export type GetBaseTranslationsData = {
          */
         langTag: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * Representation to serve. `icu` compiles each value to an ICU message string; `raw` returns the stored entry objects with their declarations.
+         */
+        format?: ReadFormat;
+    };
     url: '/modules/{moduleId}/translations/{langTag}';
 };
 
@@ -114,7 +258,11 @@ export type GetBaseTranslationsErrors = {
 export type GetBaseTranslationsError = GetBaseTranslationsErrors[keyof GetBaseTranslationsErrors];
 
 export type GetBaseTranslationsResponses = {
-    200: ResolvedTranslationFileDto;
+    200: ({
+        format: 'icu';
+    } & IcuTranslationFileDto) | ({
+        format: 'raw';
+    } & RawTranslationFileDto);
 };
 
 export type GetBaseTranslationsResponse = GetBaseTranslationsResponses[keyof GetBaseTranslationsResponses];
@@ -187,7 +335,12 @@ export type GetTenantTranslationsData = {
          */
         tenantId: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * Representation to serve. `icu` compiles each value to an ICU message string; `raw` returns the stored entry objects with their declarations.
+         */
+        format?: ReadFormat;
+    };
     url: '/tenants/{tenantId}/modules/{moduleId}/translations/{langTag}';
 };
 
@@ -206,7 +359,11 @@ export type GetTenantTranslationsErrors = {
 export type GetTenantTranslationsError = GetTenantTranslationsErrors[keyof GetTenantTranslationsErrors];
 
 export type GetTenantTranslationsResponses = {
-    200: ResolvedTranslationFileDto;
+    200: ({
+        format: 'icu';
+    } & IcuTranslationFileDto) | ({
+        format: 'raw';
+    } & RawTranslationFileDto);
 };
 
 export type GetTenantTranslationsResponse = GetTenantTranslationsResponses[keyof GetTenantTranslationsResponses];
@@ -253,3 +410,79 @@ export type PublishLayerFileResponses = {
     200: unknown;
     201: unknown;
 };
+
+export type GetModuleCoverageData = {
+    body?: never;
+    path: {
+        /**
+         * The module scope.
+         */
+        moduleId: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/coverage';
+};
+
+export type GetModuleCoverageErrors = {
+    /**
+     * Invalid params
+     */
+    400: BadRequestDto;
+    /**
+     * Unauthorized
+     */
+    403: unknown;
+    404: NotFoundDto;
+    /**
+     * Internal server error
+     */
+    500: InternalServerErrorDto;
+};
+
+export type GetModuleCoverageError = GetModuleCoverageErrors[keyof GetModuleCoverageErrors];
+
+export type GetModuleCoverageResponses = {
+    200: ModuleCoverageDto;
+};
+
+export type GetModuleCoverageResponse = GetModuleCoverageResponses[keyof GetModuleCoverageResponses];
+
+export type GetLanguageTagCoverageData = {
+    body?: never;
+    path: {
+        /**
+         * The module scope.
+         */
+        moduleId: string;
+        /**
+         * Full RFC 5646 language tag.
+         */
+        langTag: string;
+    };
+    query?: never;
+    url: '/modules/{moduleId}/coverage/{langTag}';
+};
+
+export type GetLanguageTagCoverageErrors = {
+    /**
+     * Invalid params
+     */
+    400: BadRequestDto;
+    /**
+     * Unauthorized
+     */
+    403: unknown;
+    404: NotFoundDto;
+    /**
+     * Internal server error
+     */
+    500: InternalServerErrorDto;
+};
+
+export type GetLanguageTagCoverageError = GetLanguageTagCoverageErrors[keyof GetLanguageTagCoverageErrors];
+
+export type GetLanguageTagCoverageResponses = {
+    200: LanguageTagKeyCoverageDto;
+};
+
+export type GetLanguageTagCoverageResponse = GetLanguageTagCoverageResponses[keyof GetLanguageTagCoverageResponses];

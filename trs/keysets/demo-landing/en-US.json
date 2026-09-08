@@ -1,0 +1,39 @@
+{
+  "landing.hero.title": {
+    "value": "Welcome to the Hii Retail demo",
+    "description": "Main headline on the landing page hero."
+  },
+  "landing.hero.subtitle": {
+    "value": "A small tour of what a tenant sees on day one.",
+    "description": "Supporting line under the hero title."
+  },
+  "landing.nav.language": {
+    "value": "Language",
+    "description": "Label on the language dropdown selector."
+  },
+  "landing.cta.continue": {
+    "value": "Continue to the service app",
+    "description": "Primary button that links from the landing app to the service app."
+  },
+  "landing.visits.count": {
+    "value": "{count} visits today",
+    "description": "Visitor counter shown near the footer. The flat value is the untranslated fallback; the plural forms are what actually renders.",
+    "parameters": ["count"],
+    "plural": {
+      "parameter": "count",
+      "forms": {
+        "one": "{count} visit today",
+        "other": "{count} visits today"
+      }
+    }
+  },
+  "landing.footer.copyright": {
+    "value": "© {year} Hii Retail",
+    "description": "Copyright line in the footer.",
+    "parameters": ["year"]
+  },
+  "landing.error.notFound": {
+    "value": "We couldn't find that page.",
+    "description": "Shown on an unmatched route."
+  }
+}

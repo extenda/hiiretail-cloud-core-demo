@@ -9,6 +9,7 @@ export interface AuthContextValue {
   setToken: (slot: SlotId, raw: string) => string | null;
   clearToken: (slot: SlotId) => void;
   continueAnonymously: () => void;
+  enter: () => void;
   reset: () => void;
 }
 

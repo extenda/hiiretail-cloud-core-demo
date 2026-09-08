@@ -28,6 +28,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => loadAnonymousChoice() || Object.keys(loadSlots()).length > 0,
   );
 
+  // Deliberately does not flip `ready` — the login screen shows both slots at once so a PM
+  // and a tenant admin can each paste their token before continuing; committing the first one
+  // must not yank the form away before the second is in.
   const setToken = useCallback((slot: SlotId, raw: string): string | null => {
     const token = normalizeToken(raw);
     const inspection = inspectToken(token);
@@ -41,7 +44,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       return next;
     });
-    setReady(true);
 
     return null;
   }, []);
@@ -61,6 +63,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setReady(true);
   }, []);
 
+  const enter = useCallback(() => {
+    setReady(true);
+  }, []);
+
   const reset = useCallback(() => {
     clearSlots();
     clearAnonymousChoice();
@@ -76,9 +82,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setToken,
       clearToken,
       continueAnonymously,
+      enter,
       reset,
     }),
-    [ready, slots, setToken, clearToken, continueAnonymously, reset],
+    [ready, slots, setToken, clearToken, continueAnonymously, enter, reset],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

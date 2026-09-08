@@ -39,14 +39,15 @@ export function Header() {
           return (
             <span
               key={slot}
-              title={`${SLOT_META[slot].label} — ${info.tenantId ?? "no tenant claim"}`}
-              className={`hidden max-w-56 truncate rounded-full px-2.5 py-1 font-mono text-xs sm:inline ${
+              title={`${SLOT_META[slot].label}${info.tenantId ? ` — ${info.tenantId}` : ""}`}
+              className={`hidden max-w-56 truncate rounded-full px-2.5 py-1 text-xs sm:inline ${
                 stale
                   ? "bg-red-50 text-red-700"
                   : "bg-brand-50 text-brand-700"
               }`}
             >
-              {slot}: {info.tenantId ?? "—"}
+              {SLOT_META[slot].short}
+              {info.tenantId ? ` · ${info.tenantId}` : ""}
               {stale ? " (expired)" : ""}
             </span>
           );
