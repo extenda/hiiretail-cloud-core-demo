@@ -29,23 +29,33 @@ interface LanguageOutcome {
 // it's not available (or the offline simulation switch is on), fall back to whatever this app
 // cached the last time it *was* available. Nothing is ever fetched twice in the same startup,
 // and a language is only lost entirely if TRS has never once been reachable for it.
+//
+// "Try TRS first" always means a real round trip, never a browser-HTTP-cache hit: api.ts sends
+// this cached copy's ETag as `If-None-Match` and disables the browser's own cache, so a 304
+// (nothing changed) and a 200 (something did) are both a genuine answer from the origin, not
+// five-minute-old `Cache-Control: max-age` served without ever asking.
 async function loadLanguage(
   langTag: string,
   tenantId: string | undefined,
   simulateOffline: boolean,
 ): Promise<LanguageOutcome> {
+  const cached = loadCachedLanguage(langTag);
+
   if (!simulateOffline) {
     try {
-      const entries = await fetchTranslations(langTag, tenantId);
-      saveCachedLanguage(langTag, entries);
+      const outcome = await fetchTranslations(langTag, tenantId, cached?.etag);
+      if (outcome.kind === "notModified") {
+        return { entries: cached?.entries, fromCache: false };
+      }
+      saveCachedLanguage(langTag, outcome.data, outcome.etag);
 
-      return { entries, fromCache: false };
+      return { entries: outcome.data, fromCache: false };
     } catch {
       // fall through to the cache below
     }
   }
 
-  return { entries: loadCachedLanguage(langTag), fromCache: true };
+  return { entries: cached?.entries, fromCache: true };
 }
 
 function pickInitialLanguage(available: string[]): string {
@@ -85,13 +95,19 @@ export async function bootstrap(): Promise<BootstrapResult> {
 
   let tags: string[];
   if (simulateOffline) {
-    tags = loadCachedLanguageList() ?? ["en-US"];
+    tags = loadCachedLanguageList()?.tags ?? ["en-US"];
   } else {
+    const cachedList = loadCachedLanguageList();
     try {
-      tags = await fetchLanguageTags();
-      saveCachedLanguageList(tags);
+      const outcome = await fetchLanguageTags(cachedList?.etag);
+      if (outcome.kind === "notModified") {
+        tags = cachedList?.tags ?? ["en-US"];
+      } else {
+        tags = outcome.data;
+        saveCachedLanguageList(tags, outcome.etag);
+      }
     } catch {
-      tags = loadCachedLanguageList() ?? ["en-US"];
+      tags = cachedList?.tags ?? ["en-US"];
       offline = true;
     }
   }

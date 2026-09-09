@@ -32,6 +32,16 @@ connected while still running (and deploying) separately.
   startup to skip the network and go straight to cache — a way to demo the fallback without
   actually taking the service down. It's a toggle (persisted in `localStorage`, reloads the
   page to apply): click it again to go back to live.
+- **"Fetched fresh" means a real revalidation, not a cache hit.** TRS's reads carry
+  `Cache-Control: public, max-age=300, stale-while-revalidate=86400`, which a plain `fetch()`
+  would happily honor — serving up to five-minute-old (or, thanks to `stale-while-revalidate`,
+  older still) copy straight out of the browser's HTTP cache, with no network request at all,
+  even across a reload (a reload's cache-bypass reliably covers only the document and its
+  parser-referenced resources, not `fetch()` calls JS makes afterward). `src/api.ts` instead
+  sends `cache: "no-store"` plus the last stored `ETag` as `If-None-Match` on every fetch, so a
+  reload always asks the origin directly: `304` confirms nothing changed, and only a real
+  change costs the full payload — a published edit shows up on the very next reload, not after
+  a five-minute wait.
 
 ## Run locally
 
