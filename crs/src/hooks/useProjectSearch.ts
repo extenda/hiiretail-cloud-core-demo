@@ -1,12 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 import { searchProjects } from '../api/client'
+import type { ProjectStatus } from '../api/client'
 
 export interface ProjectSearchFilters {
   businessUnitId?: string
   customerId?: string
   externalCustomerId?: string
   externalProjectId?: string
-  externalReferenceId?: string
+  adid?: string
+  status?: ProjectStatus | ''
   name?: string
   addressLine?: string
   city?: string
@@ -22,7 +24,8 @@ export function useProjectSearch(filters: ProjectSearchFilters, enabled = true) 
   if (filters.customerId) query.customerId = filters.customerId
   if (filters.externalCustomerId) query.externalCustomerId = filters.externalCustomerId
   if (filters.externalProjectId) query.externalProjectId = filters.externalProjectId
-  if (filters.externalReferenceId) query.externalReferenceId = filters.externalReferenceId
+  if (filters.adid) query.adid = filters.adid
+  if (filters.status) query.status = filters.status
   if (filters.name) query.name = filters.name
   if (filters.addressLine) query.addressLine = filters.addressLine
   if (filters.city) query.city = filters.city

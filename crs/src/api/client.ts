@@ -30,6 +30,8 @@ export type {
   CustomerSearchResponseDto,
   CustomerResponseDto,
   CustomerStatus,
+  CustomerType,
+  LicenseDto,
   CreditLimitDto,
   AdditionalInputDto,
   PageInfoDto,

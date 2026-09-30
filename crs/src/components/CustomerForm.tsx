@@ -4,13 +4,59 @@ import { SearchInput } from './SearchInput'
 import { SelectInput } from './SelectInput'
 import { useBusinessUnitGroups } from '../hooks/useBusinessUnitGroups'
 import { upsertCustomerById, patchCustomerById } from '../api/client'
-import type { UpsertCustomerDto, PatchCustomerByIdDto, CustomerResponseDto, CustomerStatus, AdditionalInputDto } from '../api/client'
+import { NewBadge } from '../whatsnew/NewBadge'
+import type {
+  UpsertCustomerDto,
+  PatchCustomerByIdDto,
+  CustomerResponseDto,
+  CustomerStatus,
+  CustomerType,
+  AdditionalInputDto,
+  LicenseDto,
+} from '../api/client'
 
 const STATUS_OPTIONS = [
   { value: 'Active', label: 'Active' },
   { value: 'IsCreditBlocked', label: 'Credit Blocked' },
   { value: 'Inactive', label: 'Inactive' },
 ]
+
+const TYPE_OPTIONS = [
+  { value: 'CASH', label: 'CASH' },
+  { value: 'CREDIT', label: 'CREDIT' },
+]
+
+const LOYALTY_OPTIONS = [
+  { value: 'MEMBER', label: 'Member' },
+  { value: 'NOT_ELIGIBLE', label: 'Not eligible' },
+]
+
+type LoyaltyChoice = '' | 'MEMBER' | 'NOT_ELIGIBLE'
+type Loyalty = NonNullable<UpsertCustomerDto['loyalty']>
+
+function buildLoyalty(choice: LoyaltyChoice, identifier: string): Loyalty | undefined {
+  if (choice === 'MEMBER') return { type: 'MEMBER', identifier }
+  if (choice === 'NOT_ELIGIBLE') return { type: 'NOT_ELIGIBLE' }
+
+  return undefined
+}
+
+function parseLicenses(raw: string): LicenseDto[] | undefined {
+  const items = raw
+    .split(',')
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .map((l) => {
+      const [type, level = ''] = l.split(':').map((x) => x.trim())
+      return { type, level }
+    })
+
+  return items.length > 0 ? items : undefined
+}
+
+function formatLicenses(licenses: LicenseDto[] | undefined): string {
+  return (licenses ?? []).map((l) => `${l.type}:${l.level}`).join(', ')
+}
 
 const EMPTY_INPUT: AdditionalInputDto = {
   id: '',
@@ -35,14 +81,18 @@ export function CustomerForm({ open, onClose, onSaved, customer }: Props) {
   const [address, setAddress] = useState(customer?.address ?? '')
   const [businessUnitGroup, setBusinessUnitGroup] = useState(customer?.businessUnitGroup ?? '')
   const [externalCustomerId, setExternalCustomerId] = useState(customer?.externalCustomerId ?? '')
-  const [discountPercent, setDiscountPercent] = useState(customer?.discountPercent != null ? String(customer.discountPercent) : '')
+  const [customerType, setCustomerType] = useState<CustomerType | ''>(customer?.customerType ?? '')
+  const [orderNumber, setOrderNumber] = useState(customer?.orderNumber ?? '')
   const [status, setStatus] = useState<CustomerStatus>(customer?.status ?? 'Active')
   const [requireProject, setRequireProject] = useState(customer?.requireProject ?? false)
-  const [requireIdentification, setRequireIdentification] = useState(customer?.requireIdentification ?? false)
-  const [requireRequisition, setRequireRequisition] = useState(customer?.requireRequisition ?? false)
+  const [requireAgent, setRequireAgent] = useState(customer?.requireAgent ?? false)
+  const [loyaltyChoice, setLoyaltyChoice] = useState<LoyaltyChoice>(customer?.loyalty?.type ?? '')
+  const [loyaltyIdentifier, setLoyaltyIdentifier] = useState(
+    customer?.loyalty?.type === 'MEMBER' ? customer.loyalty.identifier : '',
+  )
   const [creditTotal, setCreditTotal] = useState(customer?.creditLimit ? String(customer.creditLimit.total) : '')
   const [creditAvailable, setCreditAvailable] = useState(customer?.creditLimit ? String(customer.creditLimit.available) : '')
-  const [licenses, setLicenses] = useState(customer?.licenses?.join(', ') ?? '')
+  const [licenses, setLicenses] = useState(formatLicenses(customer?.licenses))
   const [promotionsJson, setPromotionsJson] = useState(customer?.promotions ? JSON.stringify(customer.promotions, null, 2) : '')
   const [additionalInputs, setAdditionalInputs] = useState<AdditionalInputDto[]>(customer?.additionalInputs ?? [])
   const [submitting, setSubmitting] = useState(false)
@@ -79,12 +129,13 @@ export function CustomerForm({ open, onClose, onSaved, customer }: Props) {
            name: name || undefined,
            phone: phone || undefined,
            address: address || undefined,
-           discountPercent: discountPercent ? Number(discountPercent) : undefined,
+           customerType: customerType || undefined,
+           orderNumber: orderNumber || undefined,
+           loyalty: buildLoyalty(loyaltyChoice, loyaltyIdentifier),
            status,
            requireProject,
-           requireIdentification,
-           requireRequisition,
-           licenses: licenses.trim() ? licenses.split(',').map((l) => l.trim()).filter(Boolean) : undefined,
+           requireAgent,
+           licenses: parseLicenses(licenses),
            promotions,
            additionalInputs: filteredInputs.length > 0 ? filteredInputs : undefined,
            creditLimit: creditTotal || creditAvailable
@@ -99,12 +150,13 @@ export function CustomerForm({ open, onClose, onSaved, customer }: Props) {
           address: address || undefined,
           businessUnitGroup: businessUnitGroup || undefined,
           externalCustomerId: externalCustomerId || undefined,
-          discountPercent: discountPercent ? Number(discountPercent) : undefined,
+          customerType: customerType || undefined,
+          orderNumber: orderNumber || undefined,
+          loyalty: buildLoyalty(loyaltyChoice, loyaltyIdentifier),
           status,
           requireProject,
-          requireIdentification,
-          requireRequisition,
-          licenses: licenses.trim() ? licenses.split(',').map((l) => l.trim()).filter(Boolean) : undefined,
+          requireAgent,
+          licenses: parseLicenses(licenses),
           promotions,
           additionalInputs: filteredInputs.length > 0 ? filteredInputs : undefined,
           creditLimit: {
@@ -179,12 +231,20 @@ export function CustomerForm({ open, onClose, onSaved, customer }: Props) {
               value={externalCustomerId}
               onChange={(e) => setExternalCustomerId(e.target.value)}
             />
+            <SelectInput
+              label="Customer Type"
+              badge={<NewBadge title="CASH or CREDIT. Independent of credit limit; empty = unknown" />}
+              options={TYPE_OPTIONS}
+              value={customerType}
+              onChange={(e) => setCustomerType(e.target.value as CustomerType | '')}
+              placeholder="Unknown"
+            />
             <SearchInput
-              label="Discount %"
-              type="number"
-              placeholder="0"
-              value={discountPercent}
-              onChange={(e) => setDiscountPercent(e.target.value)}
+              label="Order Number"
+              badge={<NewBadge title="Default order number the Checkout App pre-fills" />}
+              placeholder="PO-2026-001"
+              value={orderNumber}
+              onChange={(e) => setOrderNumber(e.target.value)}
             />
             <SelectInput
               label="Status"
@@ -206,28 +266,46 @@ export function CustomerForm({ open, onClose, onSaved, customer }: Props) {
               <label className="flex items-center gap-2 text-sm text-slate-700">
                 <input
                   type="checkbox"
-                  checked={requireIdentification}
-                  onChange={(e) => setRequireIdentification(e.target.checked)}
+                  checked={requireAgent}
+                  onChange={(e) => setRequireAgent(e.target.checked)}
                   className="rounded border-slate-300"
                 />
-                Require ID
-              </label>
-              <label className="flex items-center gap-2 text-sm text-slate-700">
-                <input
-                  type="checkbox"
-                  checked={requireRequisition}
-                  onChange={(e) => setRequireRequisition(e.target.checked)}
-                  className="rounded border-slate-300"
-                />
-                Require Requisition
+                Require Agent
               </label>
             </div>
             <SearchInput
               label="Licenses"
-              placeholder="LIC-001, LIC-002"
+              placeholder="forklift:B, hazmat:2"
+              hint="type:level, comma separated"
               value={licenses}
               onChange={(e) => setLicenses(e.target.value)}
             />
+          </div>
+
+          <div className="mt-4 border-t border-slate-100 pt-4">
+            <p className="mb-2 flex items-center gap-1.5 text-xs font-medium text-slate-600">
+              Loyalty
+              <NewBadge title="Member with identifier, not eligible, or none (cashier prompts to offer membership)" />
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <SelectInput
+                label="State"
+                options={LOYALTY_OPTIONS}
+                value={loyaltyChoice}
+                onChange={(e) => setLoyaltyChoice(e.target.value as LoyaltyChoice)}
+                placeholder={isEditing ? 'Unchanged' : 'None (prompt cashier)'}
+              />
+              {loyaltyChoice === 'MEMBER' && (
+                <SearchInput
+                  label="Identifier *"
+                  placeholder="+46701234567 or member number"
+                  hint="Passed through as-is: phone, member number, anything the tenant uses"
+                  value={loyaltyIdentifier}
+                  onChange={(e) => setLoyaltyIdentifier(e.target.value)}
+                  required
+                />
+              )}
+            </div>
           </div>
 
           <div className="mt-4 border-t border-slate-100 pt-4">

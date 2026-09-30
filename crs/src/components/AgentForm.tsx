@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { SearchInput } from './SearchInput'
+import { NewBadge } from '../whatsnew/NewBadge'
 import { upsertAgent, patchAgentById } from '../api/client'
 import type { UpsertAgentByIdDto, PatchAgentByIdDto, TrustedAgentResponseDto } from '../api/client'
 
@@ -18,6 +19,10 @@ export function AgentForm({ open, customerId, customerName, onClose, onSaved, ag
   const [agentId, setAgentId] = useState(agent?.agentId ?? '')
   const [name, setName] = useState(agent?.name ?? '')
   const [externalAgentId, setExternalAgentId] = useState(agent?.externalAgentId ?? '')
+  const [phone, setPhone] = useState(agent?.phone ?? '')
+  const [email, setEmail] = useState(agent?.email ?? '')
+  const [identityNumber, setIdentityNumber] = useState(agent?.identityNumber ?? '')
+  const [requireIdentification, setRequireIdentification] = useState(agent?.requireIdentification ?? false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -30,6 +35,10 @@ export function AgentForm({ open, customerId, customerName, onClose, onSaved, ag
       if (isEditing) {
         const body: PatchAgentByIdDto = {
           name,
+          phone: phone || undefined,
+          email: email || undefined,
+          identityNumber: identityNumber || undefined,
+          requireIdentification,
         }
         await patchAgentById({ body, path: { agentId: agent.agentId }, throwOnError: true })
       } else {
@@ -38,6 +47,10 @@ export function AgentForm({ open, customerId, customerName, onClose, onSaved, ag
           customerId,
           name,
           externalAgentId: externalAgentId || undefined,
+          phone: phone || undefined,
+          email: email || undefined,
+          identityNumber: identityNumber || undefined,
+          requireIdentification,
         }
         await upsertAgent({ body, throwOnError: true })
       }
@@ -104,6 +117,44 @@ export function AgentForm({ open, customerId, customerName, onClose, onSaved, ag
                value={externalAgentId}
                onChange={(e) => setExternalAgentId(e.target.value)}
              />
+          </div>
+
+          <div className="mt-4 border-t border-amber-100 pt-4">
+            <p className="mb-2 flex items-center gap-1.5 text-xs font-medium text-slate-600">
+              Contact details
+              <NewBadge title="Phone (normalised to E.164), email (validated) and identity number" />
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <SearchInput
+                label="Phone"
+                placeholder="+46701234567"
+                hint="Normalised to E.164"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+              <SearchInput
+                label="Email"
+                type="email"
+                placeholder="agent@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <SearchInput
+                label="Identity Number"
+                placeholder="19850101-1234"
+                value={identityNumber}
+                onChange={(e) => setIdentityNumber(e.target.value)}
+              />
+              <label className="flex items-end gap-2 pb-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={requireIdentification}
+                  onChange={(e) => setRequireIdentification(e.target.checked)}
+                  className="rounded border-slate-300"
+                />
+                Require ID at checkout
+              </label>
+            </div>
           </div>
 
           {error && (

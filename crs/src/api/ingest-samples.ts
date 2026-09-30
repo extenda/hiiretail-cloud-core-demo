@@ -18,10 +18,11 @@ export const upsertCustomerSample = (): UpsertCustomerByExternalIdDto => ({
   phone: "+46 8 123 456",
   address: "Main Street 1, 11122 Stockholm",
   businessUnitGroup: "demo-bug",
-  discountPercent: 10,
-  requireRequisition: false,
-  requireIdentification: false,
-  licenses: ["LIC-001"],
+  customerType: "CREDIT",
+  orderNumber: "PO-2026-001",
+  loyalty: { type: "MEMBER", identifier: "+46701234567" },
+  requireAgent: false,
+  licenses: [{ type: "forklift", level: "B" }],
   creditLimit: {
     total: 10000,
     available: 10000,
@@ -34,7 +35,8 @@ export const upsertCustomerSample = (): UpsertCustomerByExternalIdDto => ({
 export const patchCustomerSample = (): PatchCustomerByExternalIdDto => ({
   externalCustomerId: "EXT-CUST-001",
   name: "Acme Corp (renamed)",
-  discountPercent: 15,
+  customerType: "CASH",
+  loyalty: { type: "NOT_ELIGIBLE" },
   status: "Active",
 });
 
@@ -48,6 +50,10 @@ export const upsertAgentSample = (): UpsertAgentByExternalIdDto => ({
   externalCustomerId: "EXT-CUST-001",
   name: "Jane Doe",
   businessUnitGroup: "demo-bug",
+  phone: "+46701234567",
+  email: "jane.doe@example.com",
+  identityNumber: "19850101-1234",
+  requireIdentification: true,
 });
 
 export const patchAgentSample = (): PatchAgentByExternalIdDto => ({
@@ -55,6 +61,7 @@ export const patchAgentSample = (): PatchAgentByExternalIdDto => ({
   externalCustomerId: "EXT-CUST-001",
   name: "Jane Doe (updated)",
   businessUnitGroup: "demo-bug",
+  email: "jane.doe@acme.example.com",
 });
 
 export const deleteAgentSample = (): DeleteAgentByExternalIdDto => ({
@@ -66,7 +73,7 @@ export const deleteAgentSample = (): DeleteAgentByExternalIdDto => ({
 export const upsertProjectSample = (): UpsertProjectByExternalIdDto => ({
   externalProjectId: "EXT-PROJ-001",
   externalCustomerId: "EXT-CUST-001",
-  referenceId: "REF-001",
+  adid: "ADID-4711",
   businessUnitGroup: "demo-bug",
   name: "Demo Project",
   addressLine1: "Site Road 12",
@@ -82,6 +89,7 @@ export const patchProjectSample = (): PatchProjectByExternalIdDto => ({
   externalCustomerId: "EXT-CUST-001",
   name: "Demo Project (renamed)",
   city: "Gothenburg",
+  adid: "ADID-8899",
 });
 
 export const deleteProjectSample = (): DeleteProjectByExternalIdDto => ({

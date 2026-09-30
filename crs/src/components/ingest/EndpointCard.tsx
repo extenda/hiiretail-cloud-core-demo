@@ -2,12 +2,14 @@ import { useMemo, useState } from "react";
 import { MethodBadge, type HttpMethod } from "./MethodBadge";
 import { JsonViewer } from "./JsonViewer";
 import { CodeSnippet } from "./CodeSnippet";
+import { NewBadge } from "../../whatsnew/NewBadge";
 
 export type FieldSpec = {
   name: string;
   type: string;
   required: boolean;
   description?: string;
+  isNew?: boolean;
 };
 
 export type EndpointSpec = {
@@ -240,7 +242,10 @@ function SchemaTable({ fields }: { fields: FieldSpec[] }) {
             {fields.map((field) => (
               <tr key={field.name}>
                 <td className="px-3 py-2 font-mono text-slate-800">
-                  {field.name}
+                  <span className="inline-flex items-center gap-1.5">
+                    {field.name}
+                    {field.isNew && <NewBadge dot />}
+                  </span>
                 </td>
                 <td className="px-3 py-2 font-mono text-slate-600">
                   {field.type}

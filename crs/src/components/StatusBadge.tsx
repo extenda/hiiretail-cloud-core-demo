@@ -4,13 +4,16 @@ const colorMap: Record<string, string> = {
   Inactive: 'bg-slate-100 text-slate-600 ring-slate-500/20',
   Upcoming: 'bg-sky-50 text-sky-700 ring-sky-600/20',
   Expired: 'bg-slate-100 text-slate-500 ring-slate-400/20',
+  CASH: 'bg-sky-50 text-sky-700 ring-sky-600/20',
+  CREDIT: 'bg-violet-50 text-violet-700 ring-violet-600/20',
 }
 
-export function StatusBadge({ status }: { status: string | undefined }) {
-  if (!status) return <span className="text-sm text-slate-400">—</span>
+export function StatusBadge({ status, title }: { status: string | undefined; title?: string }) {
+  if (!status) return <span className="text-sm text-slate-400" title={title}>—</span>
   const colors = colorMap[status] ?? 'bg-slate-100 text-slate-600 ring-slate-500/20'
   return (
     <span
+      title={title}
       className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${colors}`}
     >
       {status}

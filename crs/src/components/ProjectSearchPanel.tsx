@@ -1,6 +1,14 @@
 import { useState, type FormEvent } from 'react'
 import { SearchInput } from './SearchInput'
+import { SelectInput } from './SelectInput'
+import { NewBadge } from '../whatsnew/NewBadge'
 import type { ProjectSearchFilters } from '../hooks/useProjectSearch'
+
+const STATUS_OPTIONS = [
+  { value: 'Upcoming', label: 'Upcoming' },
+  { value: 'Active', label: 'Active' },
+  { value: 'Expired', label: 'Expired' },
+]
 
 interface Props {
   customerId: string
@@ -14,7 +22,7 @@ export function ProjectSearchPanel({ customerId, onSearch, isLoading, onCreateCl
   const [showFilters, setShowFilters] = useState(false)
 
   const set = (key: keyof ProjectSearchFilters) => (
-    e: React.ChangeEvent<HTMLInputElement>,
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => setFilters((f) => ({ ...f, [key]: e.target.value }))
 
   const handleShowAll = () => {
@@ -90,10 +98,17 @@ export function ProjectSearchPanel({ customerId, onSearch, isLoading, onCreateCl
               onChange={set('externalProjectId')}
             />
             <SearchInput
-              label="Ext. Reference ID"
-              placeholder="ERP-PROJ-10001"
-              value={filters.externalReferenceId ?? ''}
-              onChange={set('externalReferenceId')}
+              label="ADID"
+              badge={<NewBadge title="ERP address id. Substring match, case-insensitive" />}
+              placeholder="ADID-4711"
+              value={filters.adid ?? ''}
+              onChange={set('adid')}
+            />
+            <SelectInput
+              label="Status"
+              options={STATUS_OPTIONS}
+              value={filters.status ?? ''}
+              onChange={set('status')}
             />
             <SearchInput
               label="From Date"

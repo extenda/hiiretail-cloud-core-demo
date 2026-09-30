@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
+import { WhatsNewMenu } from '../whatsnew/WhatsNewMenu'
 
 export function Layout({ children }: { children: ReactNode }) {
   const { logout } = useAuth()
@@ -26,6 +27,8 @@ export function Layout({ children }: { children: ReactNode }) {
           </nav>
 
           <div className="flex-1" />
+
+          <WhatsNewMenu />
 
           {confirmClear ? (
             <div className="flex items-center gap-2 text-sm">
