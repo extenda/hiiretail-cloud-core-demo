@@ -1,4 +1,6 @@
 import { StatusBadge } from './StatusBadge'
+import { LoyaltyBadge } from './LoyaltyBadge'
+import { Field } from './Field'
 import type { CustomerResponseDto } from '../api/client'
 
 interface Props {
@@ -39,11 +41,20 @@ export function CustomerDetailCard({ customer, onEditClick }: Props) {
           <Field label="status">
             <StatusBadge status={customer.status} />
           </Field>
-          <Field label="discountPercent" value={customer.discountPercent != null ? String(customer.discountPercent) : undefined} />
+          <Field label="customerType" isNew newTitle="CASH or CREDIT. Independent of credit limit; absent = unknown">
+            <StatusBadge status={customer.customerType} />
+          </Field>
+          <Field label="orderNumber" value={customer.orderNumber} mono isNew newTitle="Default order number the Checkout App pre-fills" />
+          <Field label="loyalty" isNew newTitle="Member with identifier, not eligible, or absent (cashier prompts)">
+            <LoyaltyBadge loyalty={customer.loyalty} showIdentifier />
+          </Field>
           <Field label="requireProject" value={String(customer.requireProject ?? false)} />
-          <Field label="requireIdentification" value={String(customer.requireIdentification ?? false)} />
-          <Field label="requireRequisition" value={String(customer.requireRequisition ?? false)} />
-          <Field label="licenses" value={customer.licenses?.length ? customer.licenses.join(', ') : undefined} />
+          <Field label="requireAgent" value={String(customer.requireAgent ?? false)} />
+          <Field
+            label="licenses"
+            value={customer.licenses?.length ? customer.licenses.map((l) => `${l.type}:${l.level}`).join(', ') : undefined}
+            mono
+          />
         </dl>
 
         {customer.creditLimit && (
@@ -83,27 +94,6 @@ export function CustomerDetailCard({ customer, onEditClick }: Props) {
           </div>
         )}
       </div>
-    </div>
-  )
-}
-
-function Field({
-  label,
-  value,
-  mono,
-  children,
-}: {
-  label: string
-  value?: string
-  mono?: boolean
-  children?: React.ReactNode
-}) {
-  return (
-    <div>
-      <dt className="font-mono text-xs text-slate-500">{label}</dt>
-      <dd className={`font-medium text-slate-800 ${mono ? 'font-mono text-xs' : ''}`}>
-        {children ?? value ?? <span className="text-slate-300">—</span>}
-      </dd>
     </div>
   )
 }

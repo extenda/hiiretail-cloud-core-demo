@@ -1,6 +1,8 @@
 import { DataTable } from './DataTable'
 import { StatusBadge } from './StatusBadge'
+import { LoyaltyBadge } from './LoyaltyBadge'
 import { Pagination } from './Pagination'
+import { NewBadge } from '../whatsnew/NewBadge'
 import type { CustomerSearchItemDto, PageInfoDto } from '../api/client'
 
 interface Props {
@@ -17,6 +19,26 @@ const columns = [
     key: 'status',
     header: 'Status',
     render: (row: CustomerSearchItemDto) => <StatusBadge status={row.status} />,
+  },
+  {
+    key: 'customerType',
+    header: (
+      <span className="inline-flex items-center gap-1.5">
+        Type <NewBadge dot title="Customer type: CASH or CREDIT, absent = unknown" />
+      </span>
+    ),
+    render: (row: CustomerSearchItemDto) => (
+      <StatusBadge status={row.customerType} title={row.customerType ? undefined : 'Unknown'} />
+    ),
+  },
+  {
+    key: 'loyalty',
+    header: (
+      <span className="inline-flex items-center gap-1.5">
+        Loyalty <NewBadge dot title="Loyalty: member, not eligible, or absent" />
+      </span>
+    ),
+    render: (row: CustomerSearchItemDto) => <LoyaltyBadge loyalty={row.loyalty} />,
   },
   { key: 'businessUnitGroup', header: 'BU Group' },
   { key: 'phone', header: 'Phone' },

@@ -3,6 +3,7 @@ import { searchCustomers } from '../api/client'
 import type { CustomerStatus } from '../api/client'
 
 export interface CustomerSearchFilters {
+  query?: string
   businessUnitId?: string
   externalCustomerId?: string
   status?: CustomerStatus | ''
@@ -15,6 +16,7 @@ export interface CustomerSearchFilters {
 
 export function useCustomerSearch(filters: CustomerSearchFilters, enabled = true) {
   const query: Record<string, unknown> = {}
+  if (filters.query) query.query = filters.query
   if (filters.businessUnitId) query.businessUnitId = filters.businessUnitId
   if (filters.externalCustomerId) query.externalCustomerId = filters.externalCustomerId
   if (filters.status) query.status = filters.status

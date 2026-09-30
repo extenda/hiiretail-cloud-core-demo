@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { SearchInput } from './SearchInput'
 import { SelectInput } from './SelectInput'
+import { NewBadge } from '../whatsnew/NewBadge'
 import type { CustomerSearchFilters } from '../hooks/useCustomerSearch'
 
 const STATUS_OPTIONS = [
@@ -16,6 +17,7 @@ interface Props {
 }
 
 const EMPTY: CustomerSearchFilters = {
+  query: '',
   businessUnitId: '',
   externalCustomerId: '',
   status: '',
@@ -72,6 +74,25 @@ export function CustomerSearchPanel({ onSearch, isLoading, onCreateClick }: Prop
 
       {!isCollapsed && (
         <form onSubmit={handleSubmit} className="border-t border-slate-100 px-5 pb-4 pt-3">
+          <SearchInput
+            label="Search"
+            badge={<NewBadge title="Unified search: one term matches name or external id" />}
+            placeholder="Acme, EXT-10001, acme…"
+            value={filters.query ?? ''}
+            onChange={set('query')}
+            minLength={2}
+            className="mb-3"
+            hint={
+              <>
+                Matches <span className="font-medium">name</span> or{' '}
+                <span className="font-medium">external id</span>. Case-insensitive, min 2 chars.
+                Results ranked exact &gt; prefix &gt; substring, then by n-gram score.
+              </>
+            }
+          />
+          <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+            Filters (AND-ed with search)
+          </p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             <SearchInput
               label="Name"

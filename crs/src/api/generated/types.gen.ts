@@ -15,6 +15,45 @@ export type InternalServerErrorDto = {
     message: 'Internal Server Error';
 };
 
+/**
+ * Discriminator identifying an existing loyalty member.
+ */
+export type LoyaltyMemberType = 'MEMBER';
+
+export type LoyaltyMemberDto = {
+    /**
+     * Discriminator identifying an existing loyalty member.
+     */
+    type: LoyaltyMemberType;
+    /**
+     * Loyalty identifier supplied by the tenant. Passed through uninterpreted; may be a phone number, a member number or anything else.
+     */
+    identifier: string;
+};
+
+/**
+ * Discriminator identifying a customer who must never be offered loyalty. This variant has no identifier.
+ */
+export type LoyaltyNotEligibleType = 'NOT_ELIGIBLE';
+
+export type LoyaltyNotEligibleDto = {
+    /**
+     * Discriminator identifying a customer who must never be offered loyalty. This variant has no identifier.
+     */
+    type: LoyaltyNotEligibleType;
+};
+
+export type LicenseDto = {
+    /**
+     * License type
+     */
+    type: string;
+    /**
+     * License level
+     */
+    level: string;
+};
+
 export type CreditLimitDto = {
     /**
      * Total credit limit amount.
@@ -55,6 +94,11 @@ export type AdditionalInputDto = {
     inputRequired?: boolean;
 };
 
+/**
+ * Cash or credit account type. Independent of the credit limit; absent means unknown.
+ */
+export type CustomerType = 'CASH' | 'CREDIT';
+
 export type UpsertCustomerDto = {
     /**
      * Internal customer id used to update an existing customer.
@@ -74,16 +118,14 @@ export type UpsertCustomerDto = {
      * Optional external customer identifier.
      */
     externalCustomerId?: string;
-    discountPercent?: number;
-    requireRequisition?: boolean;
-    requireIdentification?: boolean;
+    requireAgent?: boolean;
     /**
      * Promotion payloads.
      */
     promotions?: Array<{
         [key: string]: unknown;
     }>;
-    licenses?: Array<string>;
+    licenses?: Array<LicenseDto>;
     /**
      * Credit limit snapshot.
      */
@@ -91,6 +133,15 @@ export type UpsertCustomerDto = {
     status?: CustomerStatus;
     requireProject?: boolean;
     additionalInputs?: Array<AdditionalInputDto>;
+    /**
+     * Cash or credit account type. Independent of the credit limit; absent means unknown.
+     */
+    customerType?: CustomerType;
+    /**
+     * Default order number the Checkout App pre-fills for this customer.
+     */
+    orderNumber?: string;
+    loyalty?: LoyaltyMemberDto | LoyaltyNotEligibleDto;
 };
 
 export type CustomerResponseDto = {
@@ -104,20 +155,14 @@ export type CustomerResponseDto = {
     phone?: string;
     address?: string;
     businessUnitGroup?: string;
-    /**
-     * Optional external customer identifier.
-     */
-    externalCustomerId?: string;
-    discountPercent?: number;
-    requireRequisition?: boolean;
-    requireIdentification?: boolean;
+    requireAgent?: boolean;
     /**
      * Promotion payloads.
      */
     promotions?: Array<{
         [key: string]: unknown;
     }>;
-    licenses?: Array<string>;
+    licenses?: Array<LicenseDto>;
     /**
      * Credit limit snapshot.
      */
@@ -126,9 +171,22 @@ export type CustomerResponseDto = {
     requireProject?: boolean;
     additionalInputs?: Array<AdditionalInputDto>;
     /**
+     * Cash or credit account type. Independent of the credit limit; absent means unknown.
+     */
+    customerType?: CustomerType;
+    /**
+     * Default order number the Checkout App pre-fills for this customer.
+     */
+    orderNumber?: string;
+    loyalty?: LoyaltyMemberDto | LoyaltyNotEligibleDto;
+    /**
      * Resolved or generated internal customer id.
      */
     customerId: string;
+    /**
+     * External customer identifier. Defaults to internal id.
+     */
+    externalCustomerId: string;
 };
 
 export type CustomerSearchItemDto = {
@@ -142,20 +200,14 @@ export type CustomerSearchItemDto = {
     phone?: string;
     address?: string;
     businessUnitGroup?: string;
-    /**
-     * Optional external customer identifier.
-     */
-    externalCustomerId?: string;
-    discountPercent?: number;
-    requireRequisition?: boolean;
-    requireIdentification?: boolean;
+    requireAgent?: boolean;
     /**
      * Promotion payloads.
      */
     promotions?: Array<{
         [key: string]: unknown;
     }>;
-    licenses?: Array<string>;
+    licenses?: Array<LicenseDto>;
     /**
      * Credit limit snapshot.
      */
@@ -164,9 +216,22 @@ export type CustomerSearchItemDto = {
     requireProject?: boolean;
     additionalInputs?: Array<AdditionalInputDto>;
     /**
+     * Cash or credit account type. Independent of the credit limit; absent means unknown.
+     */
+    customerType?: CustomerType;
+    /**
+     * Default order number the Checkout App pre-fills for this customer.
+     */
+    orderNumber?: string;
+    loyalty?: LoyaltyMemberDto | LoyaltyNotEligibleDto;
+    /**
      * Resolved or generated internal customer id.
      */
     customerId: string;
+    /**
+     * External customer identifier. Defaults to internal id.
+     */
+    externalCustomerId: string;
 };
 
 export type PageInfoDto = {
@@ -199,23 +264,115 @@ export type PatchCustomerByIdDto = {
      */
     phone?: string;
     address?: string;
-    discountPercent?: number;
-    requireRequisition?: boolean;
-    requireIdentification?: boolean;
+    requireAgent?: boolean;
     /**
      * Promotion payloads.
      */
     promotions?: Array<{
         [key: string]: unknown;
     }>;
-    licenses?: Array<string>;
+    licenses?: Array<LicenseDto>;
     status?: CustomerStatus;
     requireProject?: boolean;
     additionalInputs?: Array<AdditionalInputDto>;
     /**
+     * Cash or credit account type. Independent of the credit limit; absent means unknown.
+     */
+    customerType?: CustomerType;
+    /**
+     * Default order number the Checkout App pre-fills for this customer.
+     */
+    orderNumber?: string;
+    loyalty?: LoyaltyMemberDto | LoyaltyNotEligibleDto;
+    /**
      * Credit limit snapshot.
      */
     creditLimit?: CreditLimitDto;
+};
+
+export type ValidateCreditLimitRequestDto = {
+    /**
+     * Amount requested for credit validation.
+     */
+    requestedAmount: number;
+};
+
+/**
+ * The current state of the payment.
+ */
+export type PaymentApprovalCode = 'APPROVED' | 'DECLINED' | 'OVERRIDE-REQUIRED';
+
+export type PaymentAuthorizationResponseDto = {
+    /**
+     * Unique reference number for this payment transaction.
+     */
+    referenceNumber?: string;
+    /**
+     * The current state of the payment.
+     */
+    approvalCode: PaymentApprovalCode;
+    /**
+     * An optional reason, to be added to the poslog.
+     */
+    reason?: string;
+    /**
+     * An optional translated user-facing reason, that can be shown to an end user.
+     */
+    reasonMessage?: string;
+};
+
+export type BasicProxyConfigDto = {
+    /**
+     * Proxy username.
+     */
+    username: string;
+    /**
+     * Proxy password.
+     */
+    password: string;
+};
+
+export type OAuthProxyConfigDto = {
+    /**
+     * OAuth client id.
+     */
+    clientId: string;
+    /**
+     * OAuth client secret.
+     */
+    clientSecret: string;
+    /**
+     * OAuth authorization (issuer) URL.
+     */
+    authUrl: string;
+};
+
+/**
+ * Authorization method used to reach the tenant proxy.
+ */
+export type ProxyConfigType = 'basic' | 'oauth';
+
+export type UpsertProxyConfigDto = {
+    /**
+     * Base URL of the tenant proxy server.
+     */
+    baseUrl: string;
+    /**
+     * Authorization method used to reach the tenant proxy.
+     */
+    type: ProxyConfigType;
+    config: BasicProxyConfigDto | OAuthProxyConfigDto;
+};
+
+export type ProxyConfigDto = {
+    /**
+     * Base URL of the tenant proxy server.
+     */
+    baseUrl: string;
+    /**
+     * Authorization method used to reach the tenant proxy.
+     */
+    type: ProxyConfigType;
 };
 
 export type TrustedAgentResponseDto = {
@@ -234,11 +391,27 @@ export type TrustedAgentResponseDto = {
     /**
      * External agent identifier.
      */
-    externalAgentId?: string;
+    externalAgentId: string;
     /**
      * Trusted agent display name.
      */
     name: string;
+    /**
+     * Require identifier for the agent.
+     */
+    requireIdentification?: boolean;
+    /**
+     * Agent phone number (E.164).
+     */
+    phone?: string;
+    /**
+     * Agent email address.
+     */
+    email?: string;
+    /**
+     * Agent identity number.
+     */
+    identityNumber?: string;
 };
 
 export type AgentSearchResponseDto = {
@@ -267,6 +440,22 @@ export type UpsertAgentByIdDto = {
      * Business unit scope key.
      */
     businessUnitGroup?: string;
+    /**
+     * Require identifier for the agent.
+     */
+    requireIdentification?: boolean;
+    /**
+     * Agent international phone number (E.164).
+     */
+    phone?: string;
+    /**
+     * Agent email address.
+     */
+    email?: string;
+    /**
+     * Agent identity number.
+     */
+    identityNumber?: string;
 };
 
 export type PatchAgentByIdDto = {
@@ -274,11 +463,24 @@ export type PatchAgentByIdDto = {
      * Trusted agent name.
      */
     name?: string;
+    /**
+     * Require identifier for the agent.
+     */
+    requireIdentification?: boolean;
+    /**
+     * Agent international phone number (E.164).
+     */
+    phone?: string;
+    /**
+     * Agent email address.
+     */
+    email?: string;
+    /**
+     * Agent identity number.
+     */
+    identityNumber?: string;
 };
 
-/**
- * Computed status based on fromDate and toDate at response time.
- */
 export type ProjectStatus = 'Upcoming' | 'Active' | 'Expired';
 
 export type ProjectSearchItemDto = {
@@ -293,15 +495,11 @@ export type ProjectSearchItemDto = {
     /**
      * External project identifier used by ingesting systems.
      */
-    externalProjectId?: string;
+    externalProjectId: string;
     /**
      * Business unit scope key.
      */
     businessUnitGroup?: string;
-    /**
-     * Project reference id.
-     */
-    referenceId?: string;
     /**
      * Project display name.
      */
@@ -323,7 +521,11 @@ export type ProjectSearchItemDto = {
      */
     city?: string;
     /**
-     * Project restrictions payload.
+     * ERP address id (ADID) of the project.
+     */
+    adid?: string;
+    /**
+     * Project-level restrictions applied when items are validated at checkout. Array of restriction objects, each identified by a "type" field. Supported types, mirrored across property-level and item-level scope, each in a whitelist (allow) and blacklist (deny) form: WHITELIST — { propertyName, allowedValues, exclusive? }: the item property value must be one of allowedValues; BLACKLIST — { propertyName, deniedValues, exclusive? }: the item property value must not be one of deniedValues; WHITELISTEDITEMS — { itemIds, exclusive? }: only items whose id appears in itemIds are allowed; BLACKLISTEDITEMS — { itemIds, exclusive? }: items whose id appears in itemIds are blocked. A single-value equality check (formerly a separate BOOLEAN type) is just WHITELIST/BLACKLIST with a one-element allowedValues/deniedValues array. "exclusive" (default false) controls how a rule combines with other rules of the same kind and scope: non-exclusive (default) rules are additive — their allowed/denied sets are unioned with other non-exclusive rules for the same property/scope; exclusive rules are authoritative alone — when present, they are evaluated on their own and other rules for the same property/scope are ignored. A missing or empty array means no restrictions apply. Objects are stored as-is without schema validation; entries with an unrecognized type are accepted but have no effect during evaluation.
      */
     restrictions?: Array<{
         [key: string]: unknown;
@@ -339,7 +541,7 @@ export type ProjectSearchItemDto = {
     /**
      * External customer identifier resolved during ingest.
      */
-    externalCustomerId?: string;
+    externalCustomerId: string;
     /**
      * Computed status based on fromDate and toDate at response time.
      */
@@ -363,15 +565,11 @@ export type ProjectResponseDto = {
     /**
      * External project identifier used by ingesting systems.
      */
-    externalProjectId?: string;
+    externalProjectId: string;
     /**
      * Business unit scope key.
      */
     businessUnitGroup?: string;
-    /**
-     * Project reference id.
-     */
-    referenceId?: string;
     /**
      * Project display name.
      */
@@ -393,7 +591,11 @@ export type ProjectResponseDto = {
      */
     city?: string;
     /**
-     * Project restrictions payload.
+     * ERP address id (ADID) of the project.
+     */
+    adid?: string;
+    /**
+     * Project-level restrictions applied when items are validated at checkout. Array of restriction objects, each identified by a "type" field. Supported types, mirrored across property-level and item-level scope, each in a whitelist (allow) and blacklist (deny) form: WHITELIST — { propertyName, allowedValues, exclusive? }: the item property value must be one of allowedValues; BLACKLIST — { propertyName, deniedValues, exclusive? }: the item property value must not be one of deniedValues; WHITELISTEDITEMS — { itemIds, exclusive? }: only items whose id appears in itemIds are allowed; BLACKLISTEDITEMS — { itemIds, exclusive? }: items whose id appears in itemIds are blocked. A single-value equality check (formerly a separate BOOLEAN type) is just WHITELIST/BLACKLIST with a one-element allowedValues/deniedValues array. "exclusive" (default false) controls how a rule combines with other rules of the same kind and scope: non-exclusive (default) rules are additive — their allowed/denied sets are unioned with other non-exclusive rules for the same property/scope; exclusive rules are authoritative alone — when present, they are evaluated on their own and other rules for the same property/scope are ignored. A missing or empty array means no restrictions apply. Objects are stored as-is without schema validation; entries with an unrecognized type are accepted but have no effect during evaluation.
      */
     restrictions?: Array<{
         [key: string]: unknown;
@@ -409,11 +611,20 @@ export type ProjectResponseDto = {
     /**
      * External customer identifier resolved during ingest.
      */
-    externalCustomerId?: string;
+    externalCustomerId: string;
     /**
      * Computed status based on fromDate and toDate at response time.
      */
     status: ProjectStatus;
+};
+
+export type ProjectRestrictionsResponseDto = {
+    /**
+     * Project-level restrictions applied when items are validated at checkout. Array of restriction objects, each identified by a "type" field. Supported types, mirrored across property-level and item-level scope, each in a whitelist (allow) and blacklist (deny) form: WHITELIST — { propertyName, allowedValues, exclusive? }: the item property value must be one of allowedValues; BLACKLIST — { propertyName, deniedValues, exclusive? }: the item property value must not be one of deniedValues; WHITELISTEDITEMS — { itemIds, exclusive? }: only items whose id appears in itemIds are allowed; BLACKLISTEDITEMS — { itemIds, exclusive? }: items whose id appears in itemIds are blocked. A single-value equality check (formerly a separate BOOLEAN type) is just WHITELIST/BLACKLIST with a one-element allowedValues/deniedValues array. "exclusive" (default false) controls how a rule combines with other rules of the same kind and scope: non-exclusive (default) rules are additive — their allowed/denied sets are unioned with other non-exclusive rules for the same property/scope; exclusive rules are authoritative alone — when present, they are evaluated on their own and other rules for the same property/scope are ignored. A missing or empty array means no restrictions apply. Objects are stored as-is without schema validation; entries with an unrecognized type are accepted but have no effect during evaluation.
+     */
+    restrictions?: Array<{
+        [key: string]: unknown;
+    }>;
 };
 
 export type UpsertProjectDto = {
@@ -433,10 +644,6 @@ export type UpsertProjectDto = {
      * Business unit scope key.
      */
     businessUnitGroup?: string;
-    /**
-     * Project reference id.
-     */
-    referenceId: string;
     /**
      * Project display name.
      */
@@ -458,7 +665,11 @@ export type UpsertProjectDto = {
      */
     city?: string;
     /**
-     * Project restrictions payload.
+     * ERP address id (ADID) of the project.
+     */
+    adid?: string;
+    /**
+     * Project-level restrictions applied when items are validated at checkout. Array of restriction objects, each identified by a "type" field. Supported types, mirrored across property-level and item-level scope, each in a whitelist (allow) and blacklist (deny) form: WHITELIST — { propertyName, allowedValues, exclusive? }: the item property value must be one of allowedValues; BLACKLIST — { propertyName, deniedValues, exclusive? }: the item property value must not be one of deniedValues; WHITELISTEDITEMS — { itemIds, exclusive? }: only items whose id appears in itemIds are allowed; BLACKLISTEDITEMS — { itemIds, exclusive? }: items whose id appears in itemIds are blocked. A single-value equality check (formerly a separate BOOLEAN type) is just WHITELIST/BLACKLIST with a one-element allowedValues/deniedValues array. "exclusive" (default false) controls how a rule combines with other rules of the same kind and scope: non-exclusive (default) rules are additive — their allowed/denied sets are unioned with other non-exclusive rules for the same property/scope; exclusive rules are authoritative alone — when present, they are evaluated on their own and other rules for the same property/scope are ignored. A missing or empty array means no restrictions apply. Objects are stored as-is without schema validation; entries with an unrecognized type are accepted but have no effect during evaluation.
      */
     restrictions?: Array<{
         [key: string]: unknown;
@@ -474,10 +685,6 @@ export type UpsertProjectDto = {
 };
 
 export type PatchProjectByIdDto = {
-    /**
-     * Project reference id.
-     */
-    referenceId?: string;
     /**
      * Project display name.
      */
@@ -499,7 +706,11 @@ export type PatchProjectByIdDto = {
      */
     city?: string;
     /**
-     * Project restrictions payload.
+     * ERP address id (ADID) of the project.
+     */
+    adid?: string;
+    /**
+     * Project-level restrictions applied when items are validated at checkout. Array of restriction objects, each identified by a "type" field. Supported types, mirrored across property-level and item-level scope, each in a whitelist (allow) and blacklist (deny) form: WHITELIST — { propertyName, allowedValues, exclusive? }: the item property value must be one of allowedValues; BLACKLIST — { propertyName, deniedValues, exclusive? }: the item property value must not be one of deniedValues; WHITELISTEDITEMS — { itemIds, exclusive? }: only items whose id appears in itemIds are allowed; BLACKLISTEDITEMS — { itemIds, exclusive? }: items whose id appears in itemIds are blocked. A single-value equality check (formerly a separate BOOLEAN type) is just WHITELIST/BLACKLIST with a one-element allowedValues/deniedValues array. "exclusive" (default false) controls how a rule combines with other rules of the same kind and scope: non-exclusive (default) rules are additive — their allowed/denied sets are unioned with other non-exclusive rules for the same property/scope; exclusive rules are authoritative alone — when present, they are evaluated on their own and other rules for the same property/scope are ignored. A missing or empty array means no restrictions apply. Objects are stored as-is without schema validation; entries with an unrecognized type are accepted but have no effect during evaluation.
      */
     restrictions?: Array<{
         [key: string]: unknown;
@@ -512,6 +723,21 @@ export type PatchProjectByIdDto = {
      * Project validity end date.
      */
     toDate?: string;
+};
+
+export type CreditLimitValidateRequestDto = {
+    /**
+     * External customer identifier.
+     */
+    customerId: string;
+    /**
+     * Business unit group the customer belongs to.
+     */
+    businessUnitGroup?: string;
+    /**
+     * Amount requested for credit validation.
+     */
+    requestedAmount: number;
 };
 
 export type UpsertCustomerByExternalIdDto = {
@@ -529,16 +755,14 @@ export type UpsertCustomerByExternalIdDto = {
      * External customer identifier used by ingesting systems.
      */
     externalCustomerId: string;
-    discountPercent?: number;
-    requireRequisition?: boolean;
-    requireIdentification?: boolean;
+    requireAgent?: boolean;
     /**
      * Promotion payloads.
      */
     promotions?: Array<{
         [key: string]: unknown;
     }>;
-    licenses?: Array<string>;
+    licenses?: Array<LicenseDto>;
     /**
      * Credit limit snapshot.
      */
@@ -546,6 +770,15 @@ export type UpsertCustomerByExternalIdDto = {
     status?: CustomerStatus;
     requireProject?: boolean;
     additionalInputs?: Array<AdditionalInputDto>;
+    /**
+     * Cash or credit account type. Independent of the credit limit; absent means unknown.
+     */
+    customerType?: CustomerType;
+    /**
+     * Default order number the Checkout App pre-fills for this customer.
+     */
+    orderNumber?: string;
+    loyalty?: LoyaltyMemberDto | LoyaltyNotEligibleDto;
 };
 
 export type PatchCustomerByExternalIdDto = {
@@ -558,19 +791,26 @@ export type PatchCustomerByExternalIdDto = {
      */
     phone?: string;
     address?: string;
-    discountPercent?: number;
-    requireRequisition?: boolean;
-    requireIdentification?: boolean;
+    requireAgent?: boolean;
     /**
      * Promotion payloads.
      */
     promotions?: Array<{
         [key: string]: unknown;
     }>;
-    licenses?: Array<string>;
+    licenses?: Array<LicenseDto>;
     status?: CustomerStatus;
     requireProject?: boolean;
     additionalInputs?: Array<AdditionalInputDto>;
+    /**
+     * Cash or credit account type. Independent of the credit limit; absent means unknown.
+     */
+    customerType?: CustomerType;
+    /**
+     * Default order number the Checkout App pre-fills for this customer.
+     */
+    orderNumber?: string;
+    loyalty?: LoyaltyMemberDto | LoyaltyNotEligibleDto;
     /**
      * Credit limit snapshot.
      */
@@ -606,13 +846,29 @@ export type UpsertAgentByExternalIdDto = {
      */
     externalAgentId: string;
     /**
+     * Business unit scope key.
+     */
+    businessUnitGroup?: string;
+    /**
+     * Require identifier for the agent.
+     */
+    requireIdentification?: boolean;
+    /**
+     * Agent international phone number (E.164).
+     */
+    phone?: string;
+    /**
+     * Agent email address.
+     */
+    email?: string;
+    /**
+     * Agent identity number.
+     */
+    identityNumber?: string;
+    /**
      * External customer identifier used by ingesting systems.
      */
     externalCustomerId: string;
-    /**
-     * Optional business-unit group key for disambiguation.
-     */
-    businessUnitGroup?: string;
 };
 
 export type PatchAgentByExternalIdDto = {
@@ -620,6 +876,22 @@ export type PatchAgentByExternalIdDto = {
      * Trusted agent name.
      */
     name?: string;
+    /**
+     * Require identifier for the agent.
+     */
+    requireIdentification?: boolean;
+    /**
+     * Agent international phone number (E.164).
+     */
+    phone?: string;
+    /**
+     * Agent email address.
+     */
+    email?: string;
+    /**
+     * Agent identity number.
+     */
+    identityNumber?: string;
     /**
      * External agent identifier used by ingesting systems.
      */
@@ -659,10 +931,6 @@ export type UpsertProjectByExternalIdDto = {
      */
     businessUnitGroup?: string;
     /**
-     * Project reference id.
-     */
-    referenceId: string;
-    /**
      * Project display name.
      */
     name?: string;
@@ -683,7 +951,11 @@ export type UpsertProjectByExternalIdDto = {
      */
     city?: string;
     /**
-     * Project restrictions payload.
+     * ERP address id (ADID) of the project.
+     */
+    adid?: string;
+    /**
+     * Project-level restrictions applied when items are validated at checkout. Array of restriction objects, each identified by a "type" field. Supported types, mirrored across property-level and item-level scope, each in a whitelist (allow) and blacklist (deny) form: WHITELIST — { propertyName, allowedValues, exclusive? }: the item property value must be one of allowedValues; BLACKLIST — { propertyName, deniedValues, exclusive? }: the item property value must not be one of deniedValues; WHITELISTEDITEMS — { itemIds, exclusive? }: only items whose id appears in itemIds are allowed; BLACKLISTEDITEMS — { itemIds, exclusive? }: items whose id appears in itemIds are blocked. A single-value equality check (formerly a separate BOOLEAN type) is just WHITELIST/BLACKLIST with a one-element allowedValues/deniedValues array. "exclusive" (default false) controls how a rule combines with other rules of the same kind and scope: non-exclusive (default) rules are additive — their allowed/denied sets are unioned with other non-exclusive rules for the same property/scope; exclusive rules are authoritative alone — when present, they are evaluated on their own and other rules for the same property/scope are ignored. A missing or empty array means no restrictions apply. Objects are stored as-is without schema validation; entries with an unrecognized type are accepted but have no effect during evaluation.
      */
     restrictions?: Array<{
         [key: string]: unknown;
@@ -703,10 +975,6 @@ export type UpsertProjectByExternalIdDto = {
 };
 
 export type PatchProjectByExternalIdDto = {
-    /**
-     * Project reference id.
-     */
-    referenceId?: string;
     /**
      * Project display name.
      */
@@ -728,7 +996,11 @@ export type PatchProjectByExternalIdDto = {
      */
     city?: string;
     /**
-     * Project restrictions payload.
+     * ERP address id (ADID) of the project.
+     */
+    adid?: string;
+    /**
+     * Project-level restrictions applied when items are validated at checkout. Array of restriction objects, each identified by a "type" field. Supported types, mirrored across property-level and item-level scope, each in a whitelist (allow) and blacklist (deny) form: WHITELIST — { propertyName, allowedValues, exclusive? }: the item property value must be one of allowedValues; BLACKLIST — { propertyName, deniedValues, exclusive? }: the item property value must not be one of deniedValues; WHITELISTEDITEMS — { itemIds, exclusive? }: only items whose id appears in itemIds are allowed; BLACKLISTEDITEMS — { itemIds, exclusive? }: items whose id appears in itemIds are blocked. A single-value equality check (formerly a separate BOOLEAN type) is just WHITELIST/BLACKLIST with a one-element allowedValues/deniedValues array. "exclusive" (default false) controls how a rule combines with other rules of the same kind and scope: non-exclusive (default) rules are additive — their allowed/denied sets are unioned with other non-exclusive rules for the same property/scope; exclusive rules are authoritative alone — when present, they are evaluated on their own and other rules for the same property/scope are ignored. A missing or empty array means no restrictions apply. Objects are stored as-is without schema validation; entries with an unrecognized type are accepted but have no effect during evaluation.
      */
     restrictions?: Array<{
         [key: string]: unknown;
@@ -795,15 +1067,19 @@ export type SearchCustomersData = {
          */
         status?: CustomerStatus;
         /**
-         * Customer name filter.
+         * Matches a substring of the customer name or the external customer id. Case-insensitive.
+         */
+        query?: string;
+        /**
+         * Customer name filter. Substring match, case-insensitive.
          */
         name?: string;
         /**
-         * Customer phone filter.
+         * Customer phone filter. Substring match.
          */
         phone?: string;
         /**
-         * Customer address filter.
+         * Customer address filter. Substring match, case-insensitive.
          */
         address?: string;
     };
@@ -969,6 +1245,109 @@ export type PatchCustomerByIdResponses = {
 
 export type PatchCustomerByIdResponse = PatchCustomerByIdResponses[keyof PatchCustomerByIdResponses];
 
+export type ValidateCreditLimitData = {
+    body: ValidateCreditLimitRequestDto;
+    path: {
+        /**
+         * Customer id from source CRUD data.
+         */
+        customerId: string;
+    };
+    query?: never;
+    url: '/customers/{customerId}/credit-limit:validate';
+};
+
+export type ValidateCreditLimitErrors = {
+    /**
+     * Invalid params
+     */
+    400: BadRequestDto;
+    /**
+     * Unauthorized
+     */
+    403: unknown;
+    /**
+     * No proxy is configured for the tenant.
+     */
+    412: unknown;
+    /**
+     * Internal server error
+     */
+    500: InternalServerErrorDto;
+    /**
+     * The upstream proxy was unreachable, failed, or returned an invalid/unparseable response.
+     */
+    502: unknown;
+};
+
+export type ValidateCreditLimitError = ValidateCreditLimitErrors[keyof ValidateCreditLimitErrors];
+
+export type ValidateCreditLimitResponses = {
+    200: PaymentAuthorizationResponseDto;
+};
+
+export type ValidateCreditLimitResponse = ValidateCreditLimitResponses[keyof ValidateCreditLimitResponses];
+
+export type GetProxyConfigData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/proxy-config';
+};
+
+export type GetProxyConfigErrors = {
+    /**
+     * Invalid params
+     */
+    400: BadRequestDto;
+    /**
+     * Unauthorized
+     */
+    403: unknown;
+    /**
+     * Internal server error
+     */
+    500: InternalServerErrorDto;
+};
+
+export type GetProxyConfigError = GetProxyConfigErrors[keyof GetProxyConfigErrors];
+
+export type GetProxyConfigResponses = {
+    200: ProxyConfigDto;
+};
+
+export type GetProxyConfigResponse = GetProxyConfigResponses[keyof GetProxyConfigResponses];
+
+export type UpsertProxyConfigData = {
+    body: UpsertProxyConfigDto;
+    path?: never;
+    query?: never;
+    url: '/proxy-config';
+};
+
+export type UpsertProxyConfigErrors = {
+    /**
+     * Invalid params
+     */
+    400: BadRequestDto;
+    /**
+     * Unauthorized
+     */
+    403: unknown;
+    /**
+     * Internal server error
+     */
+    500: InternalServerErrorDto;
+};
+
+export type UpsertProxyConfigError = UpsertProxyConfigErrors[keyof UpsertProxyConfigErrors];
+
+export type UpsertProxyConfigResponses = {
+    204: void;
+};
+
+export type UpsertProxyConfigResponse = UpsertProxyConfigResponses[keyof UpsertProxyConfigResponses];
+
 export type SearchAgentsData = {
     body?: never;
     path?: never;
@@ -998,7 +1377,7 @@ export type SearchAgentsData = {
          */
         externalAgentId?: string;
         /**
-         * Trusted agent name filter (NGRAM).
+         * Trusted agent name filter. Substring match, case-insensitive.
          */
         name?: string;
     };
@@ -1193,29 +1572,33 @@ export type SearchProjectsData = {
          */
         externalProjectId?: string;
         /**
-         * Project reference id filter
-         */
-        referenceId?: string;
-        /**
-         * Project name filter.
+         * Project name filter. Substring match, case-insensitive.
          */
         name?: string;
         /**
-         * Project address filter.
+         * Project address filter. Matches either address line, substring match, case-insensitive.
          */
         addressLine?: string;
         /**
-         * Project city filter.
+         * Project city filter. Substring match, case-insensitive.
          */
         city?: string;
         /**
-         * Project start date filter.
+         * Project ADID filter. Substring match, case-insensitive.
+         */
+        adid?: string;
+        /**
+         * Start of the date range filter. Matches projects whose validity period overlaps the range.
          */
         fromDate?: string;
         /**
-         * Project end date filter.
+         * End of the date range filter. Matches projects whose validity period overlaps the range.
          */
         toDate?: string;
+        /**
+         * Computed project status filter.
+         */
+        status?: ProjectStatus;
     };
     url: '/projects';
 };
@@ -1378,6 +1761,71 @@ export type PatchProjectByIdResponses = {
 };
 
 export type PatchProjectByIdResponse = PatchProjectByIdResponses[keyof PatchProjectByIdResponses];
+
+export type GetProjectRestrictionsByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Canonical project identifier.
+         */
+        projectId: string;
+    };
+    query?: never;
+    url: '/projects/{projectId}/restrictions';
+};
+
+export type GetProjectRestrictionsByIdErrors = {
+    /**
+     * Invalid params
+     */
+    400: BadRequestDto;
+    /**
+     * Unauthorized
+     */
+    403: unknown;
+    /**
+     * Internal server error
+     */
+    500: InternalServerErrorDto;
+};
+
+export type GetProjectRestrictionsByIdError = GetProjectRestrictionsByIdErrors[keyof GetProjectRestrictionsByIdErrors];
+
+export type GetProjectRestrictionsByIdResponses = {
+    200: ProjectRestrictionsResponseDto;
+};
+
+export type GetProjectRestrictionsByIdResponse = GetProjectRestrictionsByIdResponses[keyof GetProjectRestrictionsByIdResponses];
+
+export type MockValidateCreditLimitData = {
+    body: CreditLimitValidateRequestDto;
+    path?: never;
+    query?: never;
+    url: '/mock-proxy/credit-limit:validate';
+};
+
+export type MockValidateCreditLimitErrors = {
+    /**
+     * Invalid params
+     */
+    400: BadRequestDto;
+    /**
+     * Unauthorized
+     */
+    403: unknown;
+    /**
+     * Internal server error
+     */
+    500: InternalServerErrorDto;
+};
+
+export type MockValidateCreditLimitError = MockValidateCreditLimitErrors[keyof MockValidateCreditLimitErrors];
+
+export type MockValidateCreditLimitResponses = {
+    200: PaymentAuthorizationResponseDto;
+};
+
+export type MockValidateCreditLimitResponse = MockValidateCreditLimitResponses[keyof MockValidateCreditLimitResponses];
 
 export type DeleteCustomerByExternalIdData = {
     body: DeleteCustomerByExternalIdDto;

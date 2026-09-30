@@ -1,6 +1,8 @@
 import { DataTable } from './DataTable'
 import { StatusBadge } from './StatusBadge'
 import { Pagination } from './Pagination'
+import { Field } from './Field'
+import { NewBadge } from '../whatsnew/NewBadge'
 import type { ProjectSearchItemDto, PageInfoDto } from '../api/client'
 
 interface Props {
@@ -18,6 +20,17 @@ const columns = [
     render: (row: ProjectSearchItemDto) => <StatusBadge status={row.status} />,
   },
   { key: 'city', header: 'City' },
+  {
+    key: 'adid',
+    header: (
+      <span className="inline-flex items-center gap-1.5">
+        ADID <NewBadge dot title="ERP address id of the project" />
+      </span>
+    ),
+    render: (row: ProjectSearchItemDto) => (
+      row.adid ? <span className="font-mono text-xs">{row.adid}</span> : <span className="text-slate-300">—</span>
+    ),
+  },
   { key: 'fromDate', header: 'From' },
   { key: 'toDate', header: 'To' },
 ]
@@ -32,9 +45,9 @@ function renderExpandedProject(project: ProjectSearchItemDto, onEditClick?: (pro
         <Field label="status">
           <StatusBadge status={project.status} />
         </Field>
-         <Field label="externalProjectId" value={project.externalProjectId} mono />
-         <Field label="referenceId" value={project.referenceId} mono />
-         <Field label="businessUnitGroup" value={project.businessUnitGroup} />
+        <Field label="externalProjectId" value={project.externalProjectId} mono />
+        <Field label="adid" value={project.adid} mono isNew newTitle="ERP address id of the project" />
+        <Field label="businessUnitGroup" value={project.businessUnitGroup} />
         <Field label="addressLine1" value={project.addressLine1} />
         <Field label="addressLine2" value={project.addressLine2} />
         <Field label="zipCode" value={project.zipCode} />
@@ -77,27 +90,6 @@ export function ProjectTable({ items, page, onPageChange, onEditClick }: Props) 
         expandedRender={(project) => renderExpandedProject(project, onEditClick)}
       />
       <Pagination page={page} onPageChange={onPageChange} />
-    </div>
-  )
-}
-
-function Field({
-  label,
-  value,
-  mono,
-  children,
-}: {
-  label: string
-  value?: string
-  mono?: boolean
-  children?: React.ReactNode
-}) {
-  return (
-    <div>
-      <dt className="font-mono text-xs text-slate-500">{label}</dt>
-      <dd className={`font-medium text-slate-800 ${mono ? 'font-mono text-xs' : ''}`}>
-        {children ?? value ?? <span className="text-slate-300">—</span>}
-      </dd>
     </div>
   )
 }

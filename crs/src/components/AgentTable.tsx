@@ -1,5 +1,7 @@
 import { DataTable } from './DataTable'
 import { Pagination } from './Pagination'
+import { Field } from './Field'
+import { NewBadge } from '../whatsnew/NewBadge'
 import type { TrustedAgentResponseDto, PageInfoDto } from '../api/client'
 
 interface Props {
@@ -12,6 +14,22 @@ interface Props {
 const columns = [
   { key: 'name', header: 'Name' },
   { key: 'externalAgentId', header: 'Ext. Agent ID' },
+  {
+    key: 'phone',
+    header: (
+      <span className="inline-flex items-center gap-1.5">
+        Phone <NewBadge dot title="Agent phone, stored in E.164" />
+      </span>
+    ),
+  },
+  {
+    key: 'email',
+    header: (
+      <span className="inline-flex items-center gap-1.5">
+        Email <NewBadge dot title="Agent email address" />
+      </span>
+    ),
+  },
 ]
 
 function renderExpandedAgent(agent: TrustedAgentResponseDto, onEditClick?: (agent: TrustedAgentResponseDto) => void) {
@@ -23,6 +41,10 @@ function renderExpandedAgent(agent: TrustedAgentResponseDto, onEditClick?: (agen
         <Field label="name" value={agent.name} />
         <Field label="externalAgentId" value={agent.externalAgentId} mono />
         <Field label="businessUnitGroup" value={agent.businessUnitGroup} />
+        <Field label="phone" value={agent.phone} isNew newTitle="Agent phone, stored in E.164" />
+        <Field label="email" value={agent.email} isNew newTitle="Agent email address" />
+        <Field label="identityNumber" value={agent.identityNumber} mono isNew newTitle="Agent identity number" />
+        <Field label="requireIdentification" value={String(agent.requireIdentification ?? false)} />
       </dl>
       {onEditClick && (
         <div className="mt-2 flex justify-end">
@@ -49,25 +71,6 @@ export function AgentTable({ items, page, onPageChange, onEditClick }: Props) {
         expandedRender={(agent) => renderExpandedAgent(agent, onEditClick)}
       />
       <Pagination page={page} onPageChange={onPageChange} />
-    </div>
-  )
-}
-
-function Field({
-  label,
-  value,
-  mono,
-}: {
-  label: string
-  value?: string
-  mono?: boolean
-}) {
-  return (
-    <div>
-      <dt className="font-mono text-xs text-slate-500">{label}</dt>
-      <dd className={`font-medium text-slate-800 ${mono ? 'font-mono text-xs' : ''}`}>
-        {value ?? <span className="text-slate-300">—</span>}
-      </dd>
     </div>
   )
 }

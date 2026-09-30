@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeleteAgentByExternalIdData, DeleteAgentByExternalIdErrors, DeleteAgentByExternalIdResponses, DeleteAgentByIdData, DeleteAgentByIdErrors, DeleteAgentByIdResponses, DeleteCustomerByExternalIdData, DeleteCustomerByExternalIdErrors, DeleteCustomerByExternalIdResponses, DeleteCustomerByIdData, DeleteCustomerByIdErrors, DeleteCustomerByIdResponses, DeleteProjectByExternalIdData, DeleteProjectByExternalIdErrors, DeleteProjectByExternalIdResponses, DeleteProjectByIdData, DeleteProjectByIdErrors, DeleteProjectByIdResponses, GetAgentByIdData, GetAgentByIdErrors, GetAgentByIdResponses, GetCustomerByIdData, GetCustomerByIdErrors, GetCustomerByIdResponses, GetProjectByIdData, GetProjectByIdErrors, GetProjectByIdResponses, PatchAgentByExternalIdData, PatchAgentByExternalIdErrors, PatchAgentByExternalIdResponses, PatchAgentByIdData, PatchAgentByIdErrors, PatchAgentByIdResponses, PatchCustomerByExternalIdData, PatchCustomerByExternalIdErrors, PatchCustomerByExternalIdResponses, PatchCustomerByIdData, PatchCustomerByIdErrors, PatchCustomerByIdResponses, PatchProjectByExternalIdData, PatchProjectByExternalIdErrors, PatchProjectByExternalIdResponses, PatchProjectByIdData, PatchProjectByIdErrors, PatchProjectByIdResponses, SearchAgentsData, SearchAgentsErrors, SearchAgentsResponses, SearchCustomersData, SearchCustomersErrors, SearchCustomersResponses, SearchProjectsData, SearchProjectsErrors, SearchProjectsResponses, UpsertAgentByExternalIdData, UpsertAgentByExternalIdErrors, UpsertAgentByExternalIdResponses, UpsertAgentData, UpsertAgentErrors, UpsertAgentResponses, UpsertCustomerByExternalIdData, UpsertCustomerByExternalIdErrors, UpsertCustomerByExternalIdResponses, UpsertCustomerByIdData, UpsertCustomerByIdErrors, UpsertCustomerByIdResponses, UpsertProjectByExternalIdData, UpsertProjectByExternalIdErrors, UpsertProjectByExternalIdResponses, UpsertProjectByIdData, UpsertProjectByIdErrors, UpsertProjectByIdResponses } from './types.gen';
+import type { DeleteAgentByExternalIdData, DeleteAgentByExternalIdErrors, DeleteAgentByExternalIdResponses, DeleteAgentByIdData, DeleteAgentByIdErrors, DeleteAgentByIdResponses, DeleteCustomerByExternalIdData, DeleteCustomerByExternalIdErrors, DeleteCustomerByExternalIdResponses, DeleteCustomerByIdData, DeleteCustomerByIdErrors, DeleteCustomerByIdResponses, DeleteProjectByExternalIdData, DeleteProjectByExternalIdErrors, DeleteProjectByExternalIdResponses, DeleteProjectByIdData, DeleteProjectByIdErrors, DeleteProjectByIdResponses, GetAgentByIdData, GetAgentByIdErrors, GetAgentByIdResponses, GetCustomerByIdData, GetCustomerByIdErrors, GetCustomerByIdResponses, GetProjectByIdData, GetProjectByIdErrors, GetProjectByIdResponses, GetProjectRestrictionsByIdData, GetProjectRestrictionsByIdErrors, GetProjectRestrictionsByIdResponses, GetProxyConfigData, GetProxyConfigErrors, GetProxyConfigResponses, MockValidateCreditLimitData, MockValidateCreditLimitErrors, MockValidateCreditLimitResponses, PatchAgentByExternalIdData, PatchAgentByExternalIdErrors, PatchAgentByExternalIdResponses, PatchAgentByIdData, PatchAgentByIdErrors, PatchAgentByIdResponses, PatchCustomerByExternalIdData, PatchCustomerByExternalIdErrors, PatchCustomerByExternalIdResponses, PatchCustomerByIdData, PatchCustomerByIdErrors, PatchCustomerByIdResponses, PatchProjectByExternalIdData, PatchProjectByExternalIdErrors, PatchProjectByExternalIdResponses, PatchProjectByIdData, PatchProjectByIdErrors, PatchProjectByIdResponses, SearchAgentsData, SearchAgentsErrors, SearchAgentsResponses, SearchCustomersData, SearchCustomersErrors, SearchCustomersResponses, SearchProjectsData, SearchProjectsErrors, SearchProjectsResponses, UpsertAgentByExternalIdData, UpsertAgentByExternalIdErrors, UpsertAgentByExternalIdResponses, UpsertAgentData, UpsertAgentErrors, UpsertAgentResponses, UpsertCustomerByExternalIdData, UpsertCustomerByExternalIdErrors, UpsertCustomerByExternalIdResponses, UpsertCustomerByIdData, UpsertCustomerByIdErrors, UpsertCustomerByIdResponses, UpsertProjectByExternalIdData, UpsertProjectByExternalIdErrors, UpsertProjectByExternalIdResponses, UpsertProjectByIdData, UpsertProjectByIdErrors, UpsertProjectByIdResponses, UpsertProxyConfigData, UpsertProxyConfigErrors, UpsertProxyConfigResponses, ValidateCreditLimitData, ValidateCreditLimitErrors, ValidateCreditLimitResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -21,7 +21,7 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 /**
  * Search customers
  *
- * Searches customers by structured filters.
+ * Searches customers by structured filters. All filters are combined with AND; `query` matches the customer name or the external customer id. Results are ordered by match quality: exact match first, then prefix, then substring, then n-gram similarity (name and external id weighted above phone and address), then customer id.
  */
 export const searchCustomers = <ThrowOnError extends boolean = false>(options?: Options<SearchCustomersData, ThrowOnError>) => (options?.client ?? client).get<SearchCustomersResponses, SearchCustomersErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -82,9 +82,50 @@ export const patchCustomerById = <ThrowOnError extends boolean = false>(options:
 });
 
 /**
+ * Validate customer credit limit
+ *
+ * Resolves the customer to its external identifiers (external customer id and business unit group) and proxies a credit-limit validation request to the proxy configured for the tenant. The upstream decision is returned verbatim as a payment authorization. Requires a proxy to be configured (see PUT /api/v1/proxy-config) and is gated by crs.credit-limit.validate.
+ */
+export const validateCreditLimit = <ThrowOnError extends boolean = false>(options: Options<ValidateCreditLimitData, ThrowOnError>) => (options.client ?? client).post<ValidateCreditLimitResponses, ValidateCreditLimitErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/customers/{customerId}/credit-limit:validate',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Get proxy configuration
+ *
+ * Returns the proxy configuration stored for the tenant.
+ */
+export const getProxyConfig = <ThrowOnError extends boolean = false>(options?: Options<GetProxyConfigData, ThrowOnError>) => (options?.client ?? client).get<GetProxyConfigResponses, GetProxyConfigErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/proxy-config',
+    ...options
+});
+
+/**
+ * Upsert proxy configuration
+ *
+ * Stores the tenant proxy configuration (server URL + authorization) as a secret.
+ */
+export const upsertProxyConfig = <ThrowOnError extends boolean = false>(options: Options<UpsertProxyConfigData, ThrowOnError>) => (options.client ?? client).put<UpsertProxyConfigResponses, UpsertProxyConfigErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/proxy-config',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
  * Search agents
  *
- * Searches trusted agents using structured filters.
+ * Searches trusted agents using structured filters. All filters are combined with AND. Results are ordered by match quality: exact match first, then prefix, then substring, then n-gram similarity, then agent id.
  */
 export const searchAgents = <ThrowOnError extends boolean = false>(options?: Options<SearchAgentsData, ThrowOnError>) => (options?.client ?? client).get<SearchAgentsResponses, SearchAgentsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -141,7 +182,7 @@ export const patchAgentById = <ThrowOnError extends boolean = false>(options: Op
 /**
  * Search projects
  *
- * Searches projects by structured filters.
+ * Searches projects by structured filters. All filters are combined with AND. Results are ordered by match quality: exact match first, then prefix, then substring, then n-gram similarity (name weighted above address, city and ADID), then project id.
  */
 export const searchProjects = <ThrowOnError extends boolean = false>(options?: Options<SearchProjectsData, ThrowOnError>) => (options?.client ?? client).get<SearchProjectsResponses, SearchProjectsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -194,6 +235,32 @@ export const getProjectById = <ThrowOnError extends boolean = false>(options: Op
 export const patchProjectById = <ThrowOnError extends boolean = false>(options: Options<PatchProjectByIdData, ThrowOnError>) => (options.client ?? client).patch<PatchProjectByIdResponses, PatchProjectByIdErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/projects/{projectId}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Get project restrictions
+ *
+ * Returns only the restrictions payload for a single project by id.
+ */
+export const getProjectRestrictionsById = <ThrowOnError extends boolean = false>(options: Options<GetProjectRestrictionsByIdData, ThrowOnError>) => (options.client ?? client).get<GetProjectRestrictionsByIdResponses, GetProjectRestrictionsByIdErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/projects/{projectId}/restrictions',
+    ...options
+});
+
+/**
+ * Mock: validate credit limit
+ *
+ * Test-only loopback target for the credit-limit validation proxy, validating against customers stored in this API. Only available to designated test tenants (404 otherwise).
+ */
+export const mockValidateCreditLimit = <ThrowOnError extends boolean = false>(options: Options<MockValidateCreditLimitData, ThrowOnError>) => (options.client ?? client).post<MockValidateCreditLimitResponses, MockValidateCreditLimitErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/mock-proxy/credit-limit:validate',
     ...options,
     headers: {
         'Content-Type': 'application/json',

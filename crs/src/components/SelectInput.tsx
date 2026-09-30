@@ -1,15 +1,17 @@
-import type { SelectHTMLAttributes } from 'react'
+import type { ReactNode, SelectHTMLAttributes } from 'react'
 
 interface Props extends SelectHTMLAttributes<HTMLSelectElement> {
   label: string
   options: { value: string; label: string }[]
   /** Text for the empty/default option. Set to `false` to hide it entirely. Defaults to "All". */
   placeholder?: string | false
+  badge?: ReactNode
 }
 
 export function SelectInput({
   label,
   options,
+  badge,
   id,
   className = '',
   placeholder = 'All',
@@ -20,9 +22,10 @@ export function SelectInput({
     <div className={className}>
       <label
         htmlFor={selectId}
-        className="mb-1 block text-xs font-medium text-slate-600"
+        className="mb-1 flex items-center gap-1.5 text-xs font-medium text-slate-600"
       >
         {label}
+        {badge}
       </label>
       <select
         id={selectId}

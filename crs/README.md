@@ -3,9 +3,13 @@
 Customer Registry Service (CRS) frontend built with React, TypeScript, and Vite.
 The app lets you:
 
-- search customers
-- view and edit a customer
-- manage related projects and trusted agents
+- search customers (unified `query` across name and external id, plus field filters)
+- view and edit a customer, including customer type, order number and loyalty
+- manage related projects (with ADID) and trusted agents (with contact details)
+- try the external-ingest endpoints live
+
+The header has a **What's new** menu listing the latest API changes. New fields and filters
+carry a small `new` marker in the UI; toggle "Highlight in UI" in that menu to hide them.
 
 Authentication is done with OCMS client credentials from inside the app.
 
