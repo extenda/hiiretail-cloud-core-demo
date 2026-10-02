@@ -21,6 +21,7 @@ export {
   patchProjectById,
   deleteProjectById,
   upsertCustomerById,
+  createCustomer,
   upsertAgent,
   upsertProjectById,
 } from "./generated";
@@ -45,6 +46,8 @@ export type {
   SearchAgentsData,
   SearchProjectsData,
   UpsertCustomerDto,
+  CreateCustomerRequestDto,
+  CustomerCreationAcceptedDto,
   UpsertProjectDto,
   UpsertAgentByIdDto,
   PatchCustomerByIdDto,

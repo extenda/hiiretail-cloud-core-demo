@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeleteAgentByExternalIdData, DeleteAgentByExternalIdErrors, DeleteAgentByExternalIdResponses, DeleteAgentByIdData, DeleteAgentByIdErrors, DeleteAgentByIdResponses, DeleteCustomerByExternalIdData, DeleteCustomerByExternalIdErrors, DeleteCustomerByExternalIdResponses, DeleteCustomerByIdData, DeleteCustomerByIdErrors, DeleteCustomerByIdResponses, DeleteProjectByExternalIdData, DeleteProjectByExternalIdErrors, DeleteProjectByExternalIdResponses, DeleteProjectByIdData, DeleteProjectByIdErrors, DeleteProjectByIdResponses, GetAgentByIdData, GetAgentByIdErrors, GetAgentByIdResponses, GetCustomerByIdData, GetCustomerByIdErrors, GetCustomerByIdResponses, GetProjectByIdData, GetProjectByIdErrors, GetProjectByIdResponses, GetProjectRestrictionsByIdData, GetProjectRestrictionsByIdErrors, GetProjectRestrictionsByIdResponses, GetProxyConfigData, GetProxyConfigErrors, GetProxyConfigResponses, MockValidateCreditLimitData, MockValidateCreditLimitErrors, MockValidateCreditLimitResponses, PatchAgentByExternalIdData, PatchAgentByExternalIdErrors, PatchAgentByExternalIdResponses, PatchAgentByIdData, PatchAgentByIdErrors, PatchAgentByIdResponses, PatchCustomerByExternalIdData, PatchCustomerByExternalIdErrors, PatchCustomerByExternalIdResponses, PatchCustomerByIdData, PatchCustomerByIdErrors, PatchCustomerByIdResponses, PatchProjectByExternalIdData, PatchProjectByExternalIdErrors, PatchProjectByExternalIdResponses, PatchProjectByIdData, PatchProjectByIdErrors, PatchProjectByIdResponses, SearchAgentsData, SearchAgentsErrors, SearchAgentsResponses, SearchCustomersData, SearchCustomersErrors, SearchCustomersResponses, SearchProjectsData, SearchProjectsErrors, SearchProjectsResponses, UpsertAgentByExternalIdData, UpsertAgentByExternalIdErrors, UpsertAgentByExternalIdResponses, UpsertAgentData, UpsertAgentErrors, UpsertAgentResponses, UpsertCustomerByExternalIdData, UpsertCustomerByExternalIdErrors, UpsertCustomerByExternalIdResponses, UpsertCustomerByIdData, UpsertCustomerByIdErrors, UpsertCustomerByIdResponses, UpsertProjectByExternalIdData, UpsertProjectByExternalIdErrors, UpsertProjectByExternalIdResponses, UpsertProjectByIdData, UpsertProjectByIdErrors, UpsertProjectByIdResponses, UpsertProxyConfigData, UpsertProxyConfigErrors, UpsertProxyConfigResponses, ValidateCreditLimitData, ValidateCreditLimitErrors, ValidateCreditLimitResponses } from './types.gen';
+import type { CreateCustomerData, CreateCustomerErrors, CreateCustomerResponses, DeleteAgentByExternalIdData, DeleteAgentByExternalIdErrors, DeleteAgentByExternalIdResponses, DeleteAgentByIdData, DeleteAgentByIdErrors, DeleteAgentByIdResponses, DeleteCustomerByExternalIdData, DeleteCustomerByExternalIdErrors, DeleteCustomerByExternalIdResponses, DeleteCustomerByIdData, DeleteCustomerByIdErrors, DeleteCustomerByIdResponses, DeleteProjectByExternalIdData, DeleteProjectByExternalIdErrors, DeleteProjectByExternalIdResponses, DeleteProjectByIdData, DeleteProjectByIdErrors, DeleteProjectByIdResponses, GetAgentByIdData, GetAgentByIdErrors, GetAgentByIdResponses, GetCustomerByIdData, GetCustomerByIdErrors, GetCustomerByIdResponses, GetProjectByIdData, GetProjectByIdErrors, GetProjectByIdResponses, GetProjectRestrictionsByIdData, GetProjectRestrictionsByIdErrors, GetProjectRestrictionsByIdResponses, GetProxyConfigData, GetProxyConfigErrors, GetProxyConfigResponses, MockCreateCustomerData, MockCreateCustomerErrors, MockCreateCustomerResponses, MockValidateCreditLimitData, MockValidateCreditLimitErrors, MockValidateCreditLimitResponses, PatchAgentByExternalIdData, PatchAgentByExternalIdErrors, PatchAgentByExternalIdResponses, PatchAgentByIdData, PatchAgentByIdErrors, PatchAgentByIdResponses, PatchCustomerByExternalIdData, PatchCustomerByExternalIdErrors, PatchCustomerByExternalIdResponses, PatchCustomerByIdData, PatchCustomerByIdErrors, PatchCustomerByIdResponses, PatchProjectByExternalIdData, PatchProjectByExternalIdErrors, PatchProjectByExternalIdResponses, PatchProjectByIdData, PatchProjectByIdErrors, PatchProjectByIdResponses, SearchAgentsData, SearchAgentsErrors, SearchAgentsResponses, SearchCustomersData, SearchCustomersErrors, SearchCustomersResponses, SearchProjectsData, SearchProjectsErrors, SearchProjectsResponses, UpsertAgentByExternalIdData, UpsertAgentByExternalIdErrors, UpsertAgentByExternalIdResponses, UpsertAgentData, UpsertAgentErrors, UpsertAgentResponses, UpsertCustomerByExternalIdData, UpsertCustomerByExternalIdErrors, UpsertCustomerByExternalIdResponses, UpsertCustomerByIdData, UpsertCustomerByIdErrors, UpsertCustomerByIdResponses, UpsertProjectByExternalIdData, UpsertProjectByExternalIdErrors, UpsertProjectByExternalIdResponses, UpsertProjectByIdData, UpsertProjectByIdErrors, UpsertProjectByIdResponses, UpsertProxyConfigData, UpsertProxyConfigErrors, UpsertProxyConfigResponses, ValidateCreditLimitData, ValidateCreditLimitErrors, ValidateCreditLimitResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -37,6 +37,21 @@ export const searchCustomers = <ThrowOnError extends boolean = false>(options?: 
 export const upsertCustomerById = <ThrowOnError extends boolean = false>(options: Options<UpsertCustomerByIdData, ThrowOnError>) => (options.client ?? client).put<UpsertCustomerByIdResponses, UpsertCustomerByIdErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/customers',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Create customer via tenant proxy
+ *
+ * Proxies a customer creation to the proxy configured for the tenant (see PUT /api/v1/proxy-config). The tenant decides whether creation is synchronous (200, the customer is stored and returned) or asynchronous (202, the tenant message is returned and nothing is stored; the customer appears once the tenant syncs it via external ingest).
+ */
+export const createCustomer = <ThrowOnError extends boolean = false>(options: Options<CreateCustomerData, ThrowOnError>) => (options.client ?? client).post<CreateCustomerResponses, CreateCustomerErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/customers:create',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -261,6 +276,21 @@ export const getProjectRestrictionsById = <ThrowOnError extends boolean = false>
 export const mockValidateCreditLimit = <ThrowOnError extends boolean = false>(options: Options<MockValidateCreditLimitData, ThrowOnError>) => (options.client ?? client).post<MockValidateCreditLimitResponses, MockValidateCreditLimitErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/mock-proxy/credit-limit:validate',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Mock: create customer
+ *
+ * Test-only loopback target for customer creation, and the reference for the tenant SPI: a tenant proxy implements POST {baseUrl}/customers:create with this request and answers 200 with the created customer or 202 with a message. This mock always answers 202 and stores the customer, as the tenant's external-ingest sync would. Only available to designated test tenants (404 otherwise).
+ */
+export const mockCreateCustomer = <ThrowOnError extends boolean = false>(options: Options<MockCreateCustomerData, ThrowOnError>) => (options.client ?? client).post<MockCreateCustomerResponses, MockCreateCustomerErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/mock-proxy/customers:create',
     ...options,
     headers: {
         'Content-Type': 'application/json',

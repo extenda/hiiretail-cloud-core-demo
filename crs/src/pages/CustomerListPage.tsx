@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { CustomerSearchPanel } from '../components/CustomerSearchPanel'
 import { CustomerTable } from '../components/CustomerTable'
 import { CustomerForm } from '../components/CustomerForm'
+import { ProxyCreateCustomerForm } from '../components/ProxyCreateCustomerForm'
 import { useCustomerSearch, type CustomerSearchFilters } from '../hooks/useCustomerSearch'
 import type { CustomerSearchItemDto } from '../api/client'
 
@@ -10,6 +11,7 @@ export function CustomerListPage() {
   const navigate = useNavigate()
   const [customerFilters, setCustomerFilters] = useState<CustomerSearchFilters>({ skip: 0, take: 50 })
   const [showCreateCustomer, setShowCreateCustomer] = useState(false)
+  const [showProxyCreate, setShowProxyCreate] = useState(false)
 
   const customerQuery = useCustomerSearch(customerFilters)
 
@@ -42,6 +44,7 @@ export function CustomerListPage() {
           onSearch={handleCustomerSearch}
           isLoading={customerQuery.isLoading}
           onCreateClick={() => setShowCreateCustomer(true)}
+          onProxyCreateClick={() => setShowProxyCreate(true)}
         />
 
         {customerQuery.isLoading && (
@@ -74,6 +77,12 @@ export function CustomerListPage() {
         open={showCreateCustomer}
         onClose={() => setShowCreateCustomer(false)}
         onSaved={handleCustomerCreated}
+      />
+
+      <ProxyCreateCustomerForm
+        open={showProxyCreate}
+        onClose={() => setShowProxyCreate(false)}
+        onCreated={handleCustomerCreated}
       />
     </>
   )

@@ -8,6 +8,14 @@ export interface Change {
 
 export const CHANGES: Change[] = [
   {
+    id: 'proxy-create',
+    title: 'Create customer via tenant proxy',
+    summary:
+      'POST /customers:create forwards phone, business unit, name, email and address to the tenant proxy. 200 stores and returns the customer; 202 returns a till message and the customer arrives later via external ingest. 412 when no proxy is configured.',
+    where: 'Customers page, "Create via Proxy" button',
+    to: '/',
+  },
+  {
     id: 'unified-search',
     title: 'Unified customer search',
     summary:
@@ -33,7 +41,7 @@ export const CHANGES: Change[] = [
     id: 'loyalty',
     title: 'Loyalty',
     summary:
-      'Member with identifier, not eligible (never offer loyalty), or absent (cashier is prompted to offer membership).',
+      'Shape is now { eligible: true, identifier } for members or { eligible: false } for never offer loyalty (replaces the old type: MEMBER / NOT_ELIGIBLE discriminator). Absent means the cashier is prompted to offer membership.',
     where: 'Customer table, detail card, form',
     to: '/',
   },

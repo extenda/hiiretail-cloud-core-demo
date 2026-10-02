@@ -11,7 +11,7 @@ export function LoyaltyBadge({ loyalty, showIdentifier = false }: { loyalty: Loy
     )
   }
 
-  if (loyalty.type === 'NOT_ELIGIBLE') {
+  if (!loyalty.eligible) {
     return (
       <span
         title="Never offer loyalty to this customer."

@@ -20,7 +20,7 @@ export const upsertCustomerSample = (): UpsertCustomerByExternalIdDto => ({
   businessUnitGroup: "demo-bug",
   customerType: "CREDIT",
   orderNumber: "PO-2026-001",
-  loyalty: { type: "MEMBER", identifier: "+46701234567" },
+  loyalty: { eligible: true, identifier: "+46701234567" },
   requireAgent: false,
   licenses: [{ type: "forklift", level: "B" }],
   creditLimit: {
@@ -36,7 +36,7 @@ export const patchCustomerSample = (): PatchCustomerByExternalIdDto => ({
   externalCustomerId: "EXT-CUST-001",
   name: "Acme Corp (renamed)",
   customerType: "CASH",
-  loyalty: { type: "NOT_ELIGIBLE" },
+  loyalty: { eligible: false },
   status: "Active",
 });
 

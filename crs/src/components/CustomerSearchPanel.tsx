@@ -14,6 +14,7 @@ interface Props {
   onSearch: (filters: CustomerSearchFilters) => void
   isLoading: boolean
   onCreateClick: () => void
+  onProxyCreateClick: () => void
 }
 
 const EMPTY: CustomerSearchFilters = {
@@ -26,7 +27,7 @@ const EMPTY: CustomerSearchFilters = {
   address: '',
 }
 
-export function CustomerSearchPanel({ onSearch, isLoading, onCreateClick }: Props) {
+export function CustomerSearchPanel({ onSearch, isLoading, onCreateClick, onProxyCreateClick }: Props) {
   const [filters, setFilters] = useState<CustomerSearchFilters>({ ...EMPTY })
   const [isCollapsed, setIsCollapsed] = useState(false)
 
@@ -63,13 +64,23 @@ export function CustomerSearchPanel({ onSearch, isLoading, onCreateClick }: Prop
             <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
           </svg>
         </button>
-        <button
-          type="button"
-          onClick={onCreateClick}
-          className="rounded-md bg-indigo-600 px-3 py-1 text-xs font-medium text-white shadow-sm hover:bg-indigo-700"
-        >
-          + Create Customer
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onProxyCreateClick}
+            className="inline-flex items-center gap-1.5 rounded-md border border-indigo-300 px-3 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-50"
+          >
+            + Create via Proxy
+            <NewBadge title="POST /customers:create, delegated to the tenant proxy" />
+          </button>
+          <button
+            type="button"
+            onClick={onCreateClick}
+            className="rounded-md bg-indigo-600 px-3 py-1 text-xs font-medium text-white shadow-sm hover:bg-indigo-700"
+          >
+            + Create Customer
+          </button>
+        </div>
       </div>
 
       {!isCollapsed && (

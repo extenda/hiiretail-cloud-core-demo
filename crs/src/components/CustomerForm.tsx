@@ -35,10 +35,16 @@ type LoyaltyChoice = '' | 'MEMBER' | 'NOT_ELIGIBLE'
 type Loyalty = NonNullable<UpsertCustomerDto['loyalty']>
 
 function buildLoyalty(choice: LoyaltyChoice, identifier: string): Loyalty | undefined {
-  if (choice === 'MEMBER') return { type: 'MEMBER', identifier }
-  if (choice === 'NOT_ELIGIBLE') return { type: 'NOT_ELIGIBLE' }
+  if (choice === 'MEMBER') return { eligible: true, identifier }
+  if (choice === 'NOT_ELIGIBLE') return { eligible: false }
 
   return undefined
+}
+
+function loyaltyChoiceOf(loyalty: Loyalty | undefined): LoyaltyChoice {
+  if (!loyalty) return ''
+
+  return loyalty.eligible ? 'MEMBER' : 'NOT_ELIGIBLE'
 }
 
 function parseLicenses(raw: string): LicenseDto[] | undefined {
@@ -86,9 +92,9 @@ export function CustomerForm({ open, onClose, onSaved, customer }: Props) {
   const [status, setStatus] = useState<CustomerStatus>(customer?.status ?? 'Active')
   const [requireProject, setRequireProject] = useState(customer?.requireProject ?? false)
   const [requireAgent, setRequireAgent] = useState(customer?.requireAgent ?? false)
-  const [loyaltyChoice, setLoyaltyChoice] = useState<LoyaltyChoice>(customer?.loyalty?.type ?? '')
+  const [loyaltyChoice, setLoyaltyChoice] = useState<LoyaltyChoice>(loyaltyChoiceOf(customer?.loyalty))
   const [loyaltyIdentifier, setLoyaltyIdentifier] = useState(
-    customer?.loyalty?.type === 'MEMBER' ? customer.loyalty.identifier : '',
+    customer?.loyalty?.eligible ? customer.loyalty.identifier : '',
   )
   const [creditTotal, setCreditTotal] = useState(customer?.creditLimit ? String(customer.creditLimit.total) : '')
   const [creditAvailable, setCreditAvailable] = useState(customer?.creditLimit ? String(customer.creditLimit.available) : '')

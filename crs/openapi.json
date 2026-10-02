@@ -228,6 +228,86 @@
         ]
       }
     },
+    "/customers:create": {
+      "post": {
+        "description": "Proxies a customer creation to the proxy configured for the tenant (see PUT /api/v1/proxy-config). The tenant decides whether creation is synchronous (200, the customer is stored and returned) or asynchronous (202, the tenant message is returned and nothing is stored; the customer appears once the tenant syncs it via external ingest).",
+        "operationId": "createCustomer",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCustomerRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerResponseDto"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCreationAcceptedDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid params",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Unauthorized"
+          },
+          "412": {
+            "description": "No proxy is configured for the tenant."
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorDto"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The upstream proxy was unreachable, failed, or returned an invalid/unparseable response."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Create customer via tenant proxy",
+        "tags": [
+          "Customer"
+        ],
+        "x-permissions": [
+          "crs.customer.write"
+        ]
+      }
+    },
     "/customers/{customerId}": {
       "get": {
         "description": "Customer retrieval endpoint by source CRUD id.",
@@ -1612,6 +1692,80 @@
         ]
       }
     },
+    "/mock-proxy/customers:create": {
+      "post": {
+        "description": "Test-only loopback target for customer creation, and the reference for the tenant SPI: a tenant proxy implements POST {baseUrl}/customers:create with this request and answers 200 with the created customer or 202 with a message. This mock always answers 202 and stores the customer, as the tenant's external-ingest sync would. Only available to designated test tenants (404 otherwise).",
+        "operationId": "mockCreateCustomer",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCustomerRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "SPI: the customer was created synchronously.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedCustomerDto"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "The creation completes asynchronously; the message is shown at the till.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerCreationAcceptedDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid params",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalServerErrorDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Mock: create customer",
+        "tags": [
+          "MockProxy"
+        ],
+        "x-permissions": [
+          "crs.customer.write"
+        ]
+      }
+    },
     "/external-ingest/customers": {
       "put": {
         "description": "External customer upsert endpoint by external id.",
@@ -2267,23 +2421,15 @@
           "message"
         ]
       },
-      "LoyaltyMemberType": {
-        "type": "string",
-        "enum": [
-          "MEMBER"
-        ],
-        "description": "Discriminator identifying an existing loyalty member."
-      },
-      "LoyaltyMemberDto": {
+      "LoyaltyEligibleDto": {
         "type": "object",
         "properties": {
-          "type": {
-            "description": "Discriminator identifying an existing loyalty member.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/LoyaltyMemberType"
-              }
-            ]
+          "eligible": {
+            "type": "boolean",
+            "enum": [
+              true
+            ],
+            "description": "Marks a customer who is a loyalty member."
           },
           "identifier": {
             "type": "string",
@@ -2293,32 +2439,24 @@
           }
         },
         "required": [
-          "type",
+          "eligible",
           "identifier"
         ],
         "additionalProperties": false
       },
-      "LoyaltyNotEligibleType": {
-        "type": "string",
-        "enum": [
-          "NOT_ELIGIBLE"
-        ],
-        "description": "Discriminator identifying a customer who must never be offered loyalty. This variant has no identifier."
-      },
       "LoyaltyNotEligibleDto": {
         "type": "object",
         "properties": {
-          "type": {
-            "description": "Discriminator identifying a customer who must never be offered loyalty. This variant has no identifier.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/LoyaltyNotEligibleType"
-              }
-            ]
+          "eligible": {
+            "type": "boolean",
+            "enum": [
+              false
+            ],
+            "description": "Marks a customer who must never be offered loyalty. This variant has no identifier."
           }
         },
         "required": [
-          "type"
+          "eligible"
         ],
         "additionalProperties": false
       },
@@ -2511,7 +2649,7 @@
           "loyalty": {
             "oneOf": [
               {
-                "$ref": "#/components/schemas/LoyaltyMemberDto"
+                "$ref": "#/components/schemas/LoyaltyEligibleDto"
               },
               {
                 "$ref": "#/components/schemas/LoyaltyNotEligibleDto"
@@ -2605,7 +2743,7 @@
           "loyalty": {
             "oneOf": [
               {
-                "$ref": "#/components/schemas/LoyaltyMemberDto"
+                "$ref": "#/components/schemas/LoyaltyEligibleDto"
               },
               {
                 "$ref": "#/components/schemas/LoyaltyNotEligibleDto"
@@ -2626,6 +2764,59 @@
         "required": [
           "customerId",
           "externalCustomerId"
+        ]
+      },
+      "CreateCustomerRequestDto": {
+        "type": "object",
+        "properties": {
+          "phone": {
+            "type": "string",
+            "minLength": 1,
+            "description": "International phone number (E.164).",
+            "example": "+46701234567"
+          },
+          "businessUnitId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Business unit the customer is created from. The tenant resolves the customer scope from it.",
+            "example": "B2B-SE"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Customer account name.",
+            "example": "Acme Builders"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Customer email address.",
+            "example": "buyer@acme.example.com"
+          },
+          "address": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Customer address.",
+            "example": "Main Street 1, Stockholm"
+          }
+        },
+        "required": [
+          "phone",
+          "businessUnitId"
+        ]
+      },
+      "CustomerCreationAcceptedDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Message from the tenant to show at the till, passed through untouched.",
+            "example": "Ask the customer to approve the membership request sent to their phone."
+          }
+        },
+        "required": [
+          "message"
         ]
       },
       "CustomerSearchItemDto": {
@@ -2710,7 +2901,7 @@
           "loyalty": {
             "oneOf": [
               {
-                "$ref": "#/components/schemas/LoyaltyMemberDto"
+                "$ref": "#/components/schemas/LoyaltyEligibleDto"
               },
               {
                 "$ref": "#/components/schemas/LoyaltyNotEligibleDto"
@@ -2845,7 +3036,7 @@
           "loyalty": {
             "oneOf": [
               {
-                "$ref": "#/components/schemas/LoyaltyMemberDto"
+                "$ref": "#/components/schemas/LoyaltyEligibleDto"
               },
               {
                 "$ref": "#/components/schemas/LoyaltyNotEligibleDto"
@@ -3245,7 +3436,7 @@
             "description": "ERP address id (ADID) of the project."
           },
           "restrictions": {
-            "description": "Project-level restrictions applied when items are validated at checkout. Array of restriction objects, each identified by a \"type\" field. Supported types, mirrored across property-level and item-level scope, each in a whitelist (allow) and blacklist (deny) form: WHITELIST — { propertyName, allowedValues, exclusive? }: the item property value must be one of allowedValues; BLACKLIST — { propertyName, deniedValues, exclusive? }: the item property value must not be one of deniedValues; WHITELISTEDITEMS — { itemIds, exclusive? }: only items whose id appears in itemIds are allowed; BLACKLISTEDITEMS — { itemIds, exclusive? }: items whose id appears in itemIds are blocked. A single-value equality check (formerly a separate BOOLEAN type) is just WHITELIST/BLACKLIST with a one-element allowedValues/deniedValues array. \"exclusive\" (default false) controls how a rule combines with other rules of the same kind and scope: non-exclusive (default) rules are additive — their allowed/denied sets are unioned with other non-exclusive rules for the same property/scope; exclusive rules are authoritative alone — when present, they are evaluated on their own and other rules for the same property/scope are ignored. A missing or empty array means no restrictions apply. Objects are stored as-is without schema validation; entries with an unrecognized type are accepted but have no effect during evaluation.",
+            "description": "Project-level restrictions applied when items are validated at checkout. Array of restriction objects, each identified by a \"type\" field. Supported types, mirrored across property-level and item-level scope, each in a whitelist (allow) and blacklist (deny) form: WHITELIST \u2014 { propertyName, allowedValues, exclusive? }: the item property value must be one of allowedValues; BLACKLIST \u2014 { propertyName, deniedValues, exclusive? }: the item property value must not be one of deniedValues; WHITELISTEDITEMS \u2014 { itemIds, exclusive? }: only items whose id appears in itemIds are allowed; BLACKLISTEDITEMS \u2014 { itemIds, exclusive? }: items whose id appears in itemIds are blocked. A single-value equality check (formerly a separate BOOLEAN type) is just WHITELIST/BLACKLIST with a one-element allowedValues/deniedValues array. \"exclusive\" (default false) controls how a rule combines with other rules of the same kind and scope: non-exclusive (default) rules are additive \u2014 their allowed/denied sets are unioned with other non-exclusive rules for the same property/scope; exclusive rules are authoritative alone \u2014 when present, they are evaluated on their own and other rules for the same property/scope are ignored. A missing or empty array means no restrictions apply. Objects are stored as-is without schema validation; entries with an unrecognized type are accepted but have no effect during evaluation.",
             "example": [
               {
                 "type": "WHITELIST",
@@ -3396,7 +3587,7 @@
             "description": "ERP address id (ADID) of the project."
           },
           "restrictions": {
-            "description": "Project-level restrictions applied when items are validated at checkout. Array of restriction objects, each identified by a \"type\" field. Supported types, mirrored across property-level and item-level scope, each in a whitelist (allow) and blacklist (deny) form: WHITELIST — { propertyName, allowedValues, exclusive? }: the item property value must be one of allowedValues; BLACKLIST — { propertyName, deniedValues, exclusive? }: the item property value must not be one of deniedValues; WHITELISTEDITEMS — { itemIds, exclusive? }: only items whose id appears in itemIds are allowed; BLACKLISTEDITEMS — { itemIds, exclusive? }: items whose id appears in itemIds are blocked. A single-value equality check (formerly a separate BOOLEAN type) is just WHITELIST/BLACKLIST with a one-element allowedValues/deniedValues array. \"exclusive\" (default false) controls how a rule combines with other rules of the same kind and scope: non-exclusive (default) rules are additive — their allowed/denied sets are unioned with other non-exclusive rules for the same property/scope; exclusive rules are authoritative alone — when present, they are evaluated on their own and other rules for the same property/scope are ignored. A missing or empty array means no restrictions apply. Objects are stored as-is without schema validation; entries with an unrecognized type are accepted but have no effect during evaluation.",
+            "description": "Project-level restrictions applied when items are validated at checkout. Array of restriction objects, each identified by a \"type\" field. Supported types, mirrored across property-level and item-level scope, each in a whitelist (allow) and blacklist (deny) form: WHITELIST \u2014 { propertyName, allowedValues, exclusive? }: the item property value must be one of allowedValues; BLACKLIST \u2014 { propertyName, deniedValues, exclusive? }: the item property value must not be one of deniedValues; WHITELISTEDITEMS \u2014 { itemIds, exclusive? }: only items whose id appears in itemIds are allowed; BLACKLISTEDITEMS \u2014 { itemIds, exclusive? }: items whose id appears in itemIds are blocked. A single-value equality check (formerly a separate BOOLEAN type) is just WHITELIST/BLACKLIST with a one-element allowedValues/deniedValues array. \"exclusive\" (default false) controls how a rule combines with other rules of the same kind and scope: non-exclusive (default) rules are additive \u2014 their allowed/denied sets are unioned with other non-exclusive rules for the same property/scope; exclusive rules are authoritative alone \u2014 when present, they are evaluated on their own and other rules for the same property/scope are ignored. A missing or empty array means no restrictions apply. Objects are stored as-is without schema validation; entries with an unrecognized type are accepted but have no effect during evaluation.",
             "example": [
               {
                 "type": "WHITELIST",
@@ -3478,7 +3669,7 @@
         "type": "object",
         "properties": {
           "restrictions": {
-            "description": "Project-level restrictions applied when items are validated at checkout. Array of restriction objects, each identified by a \"type\" field. Supported types, mirrored across property-level and item-level scope, each in a whitelist (allow) and blacklist (deny) form: WHITELIST — { propertyName, allowedValues, exclusive? }: the item property value must be one of allowedValues; BLACKLIST — { propertyName, deniedValues, exclusive? }: the item property value must not be one of deniedValues; WHITELISTEDITEMS — { itemIds, exclusive? }: only items whose id appears in itemIds are allowed; BLACKLISTEDITEMS — { itemIds, exclusive? }: items whose id appears in itemIds are blocked. A single-value equality check (formerly a separate BOOLEAN type) is just WHITELIST/BLACKLIST with a one-element allowedValues/deniedValues array. \"exclusive\" (default false) controls how a rule combines with other rules of the same kind and scope: non-exclusive (default) rules are additive — their allowed/denied sets are unioned with other non-exclusive rules for the same property/scope; exclusive rules are authoritative alone — when present, they are evaluated on their own and other rules for the same property/scope are ignored. A missing or empty array means no restrictions apply. Objects are stored as-is without schema validation; entries with an unrecognized type are accepted but have no effect during evaluation.",
+            "description": "Project-level restrictions applied when items are validated at checkout. Array of restriction objects, each identified by a \"type\" field. Supported types, mirrored across property-level and item-level scope, each in a whitelist (allow) and blacklist (deny) form: WHITELIST \u2014 { propertyName, allowedValues, exclusive? }: the item property value must be one of allowedValues; BLACKLIST \u2014 { propertyName, deniedValues, exclusive? }: the item property value must not be one of deniedValues; WHITELISTEDITEMS \u2014 { itemIds, exclusive? }: only items whose id appears in itemIds are allowed; BLACKLISTEDITEMS \u2014 { itemIds, exclusive? }: items whose id appears in itemIds are blocked. A single-value equality check (formerly a separate BOOLEAN type) is just WHITELIST/BLACKLIST with a one-element allowedValues/deniedValues array. \"exclusive\" (default false) controls how a rule combines with other rules of the same kind and scope: non-exclusive (default) rules are additive \u2014 their allowed/denied sets are unioned with other non-exclusive rules for the same property/scope; exclusive rules are authoritative alone \u2014 when present, they are evaluated on their own and other rules for the same property/scope are ignored. A missing or empty array means no restrictions apply. Objects are stored as-is without schema validation; entries with an unrecognized type are accepted but have no effect during evaluation.",
             "example": [
               {
                 "type": "WHITELIST",
@@ -3578,7 +3769,7 @@
             "description": "ERP address id (ADID) of the project."
           },
           "restrictions": {
-            "description": "Project-level restrictions applied when items are validated at checkout. Array of restriction objects, each identified by a \"type\" field. Supported types, mirrored across property-level and item-level scope, each in a whitelist (allow) and blacklist (deny) form: WHITELIST — { propertyName, allowedValues, exclusive? }: the item property value must be one of allowedValues; BLACKLIST — { propertyName, deniedValues, exclusive? }: the item property value must not be one of deniedValues; WHITELISTEDITEMS — { itemIds, exclusive? }: only items whose id appears in itemIds are allowed; BLACKLISTEDITEMS — { itemIds, exclusive? }: items whose id appears in itemIds are blocked. A single-value equality check (formerly a separate BOOLEAN type) is just WHITELIST/BLACKLIST with a one-element allowedValues/deniedValues array. \"exclusive\" (default false) controls how a rule combines with other rules of the same kind and scope: non-exclusive (default) rules are additive — their allowed/denied sets are unioned with other non-exclusive rules for the same property/scope; exclusive rules are authoritative alone — when present, they are evaluated on their own and other rules for the same property/scope are ignored. A missing or empty array means no restrictions apply. Objects are stored as-is without schema validation; entries with an unrecognized type are accepted but have no effect during evaluation.",
+            "description": "Project-level restrictions applied when items are validated at checkout. Array of restriction objects, each identified by a \"type\" field. Supported types, mirrored across property-level and item-level scope, each in a whitelist (allow) and blacklist (deny) form: WHITELIST \u2014 { propertyName, allowedValues, exclusive? }: the item property value must be one of allowedValues; BLACKLIST \u2014 { propertyName, deniedValues, exclusive? }: the item property value must not be one of deniedValues; WHITELISTEDITEMS \u2014 { itemIds, exclusive? }: only items whose id appears in itemIds are allowed; BLACKLISTEDITEMS \u2014 { itemIds, exclusive? }: items whose id appears in itemIds are blocked. A single-value equality check (formerly a separate BOOLEAN type) is just WHITELIST/BLACKLIST with a one-element allowedValues/deniedValues array. \"exclusive\" (default false) controls how a rule combines with other rules of the same kind and scope: non-exclusive (default) rules are additive \u2014 their allowed/denied sets are unioned with other non-exclusive rules for the same property/scope; exclusive rules are authoritative alone \u2014 when present, they are evaluated on their own and other rules for the same property/scope are ignored. A missing or empty array means no restrictions apply. Objects are stored as-is without schema validation; entries with an unrecognized type are accepted but have no effect during evaluation.",
             "example": [
               {
                 "type": "WHITELIST",
@@ -3673,7 +3864,7 @@
             "description": "ERP address id (ADID) of the project."
           },
           "restrictions": {
-            "description": "Project-level restrictions applied when items are validated at checkout. Array of restriction objects, each identified by a \"type\" field. Supported types, mirrored across property-level and item-level scope, each in a whitelist (allow) and blacklist (deny) form: WHITELIST — { propertyName, allowedValues, exclusive? }: the item property value must be one of allowedValues; BLACKLIST — { propertyName, deniedValues, exclusive? }: the item property value must not be one of deniedValues; WHITELISTEDITEMS — { itemIds, exclusive? }: only items whose id appears in itemIds are allowed; BLACKLISTEDITEMS — { itemIds, exclusive? }: items whose id appears in itemIds are blocked. A single-value equality check (formerly a separate BOOLEAN type) is just WHITELIST/BLACKLIST with a one-element allowedValues/deniedValues array. \"exclusive\" (default false) controls how a rule combines with other rules of the same kind and scope: non-exclusive (default) rules are additive — their allowed/denied sets are unioned with other non-exclusive rules for the same property/scope; exclusive rules are authoritative alone — when present, they are evaluated on their own and other rules for the same property/scope are ignored. A missing or empty array means no restrictions apply. Objects are stored as-is without schema validation; entries with an unrecognized type are accepted but have no effect during evaluation.",
+            "description": "Project-level restrictions applied when items are validated at checkout. Array of restriction objects, each identified by a \"type\" field. Supported types, mirrored across property-level and item-level scope, each in a whitelist (allow) and blacklist (deny) form: WHITELIST \u2014 { propertyName, allowedValues, exclusive? }: the item property value must be one of allowedValues; BLACKLIST \u2014 { propertyName, deniedValues, exclusive? }: the item property value must not be one of deniedValues; WHITELISTEDITEMS \u2014 { itemIds, exclusive? }: only items whose id appears in itemIds are allowed; BLACKLISTEDITEMS \u2014 { itemIds, exclusive? }: items whose id appears in itemIds are blocked. A single-value equality check (formerly a separate BOOLEAN type) is just WHITELIST/BLACKLIST with a one-element allowedValues/deniedValues array. \"exclusive\" (default false) controls how a rule combines with other rules of the same kind and scope: non-exclusive (default) rules are additive \u2014 their allowed/denied sets are unioned with other non-exclusive rules for the same property/scope; exclusive rules are authoritative alone \u2014 when present, they are evaluated on their own and other rules for the same property/scope are ignored. A missing or empty array means no restrictions apply. Objects are stored as-is without schema validation; entries with an unrecognized type are accepted but have no effect during evaluation.",
             "example": [
               {
                 "type": "WHITELIST",
@@ -3755,6 +3946,107 @@
         "required": [
           "customerId",
           "requestedAmount"
+        ]
+      },
+      "CreatedCustomerDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Customer account name."
+          },
+          "phone": {
+            "type": "string",
+            "minLength": 1,
+            "description": "International phone number (E.164)",
+            "example": "+46701234567"
+          },
+          "address": {
+            "type": "string",
+            "minLength": 1
+          },
+          "businessUnitGroup": {
+            "type": "string",
+            "minLength": 1
+          },
+          "requireAgent": {
+            "type": "boolean"
+          },
+          "promotions": {
+            "description": "Promotion payloads.",
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "licenses": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LicenseDto"
+            }
+          },
+          "creditLimit": {
+            "description": "Credit limit snapshot.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CreditLimitDto"
+              }
+            ]
+          },
+          "status": {
+            "default": "Active",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CustomerStatus"
+              }
+            ]
+          },
+          "requireProject": {
+            "type": "boolean"
+          },
+          "additionalInputs": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdditionalInputDto"
+            }
+          },
+          "customerType": {
+            "description": "Cash or credit account type. Independent of the credit limit; absent means unknown.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CustomerType"
+              }
+            ]
+          },
+          "orderNumber": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Default order number the Checkout App pre-fills for this customer."
+          },
+          "loyalty": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/LoyaltyEligibleDto"
+              },
+              {
+                "$ref": "#/components/schemas/LoyaltyNotEligibleDto"
+              }
+            ]
+          },
+          "externalCustomerId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Customer identifier in the tenant's system.",
+            "example": "CUST-10001"
+          }
+        },
+        "required": [
+          "creditLimit",
+          "externalCustomerId"
         ]
       },
       "UpsertCustomerByExternalIdDto": {
@@ -3845,7 +4137,7 @@
           "loyalty": {
             "oneOf": [
               {
-                "$ref": "#/components/schemas/LoyaltyMemberDto"
+                "$ref": "#/components/schemas/LoyaltyEligibleDto"
               },
               {
                 "$ref": "#/components/schemas/LoyaltyNotEligibleDto"
@@ -3928,7 +4220,7 @@
           "loyalty": {
             "oneOf": [
               {
-                "$ref": "#/components/schemas/LoyaltyMemberDto"
+                "$ref": "#/components/schemas/LoyaltyEligibleDto"
               },
               {
                 "$ref": "#/components/schemas/LoyaltyNotEligibleDto"
@@ -4156,7 +4448,7 @@
             "description": "ERP address id (ADID) of the project."
           },
           "restrictions": {
-            "description": "Project-level restrictions applied when items are validated at checkout. Array of restriction objects, each identified by a \"type\" field. Supported types, mirrored across property-level and item-level scope, each in a whitelist (allow) and blacklist (deny) form: WHITELIST — { propertyName, allowedValues, exclusive? }: the item property value must be one of allowedValues; BLACKLIST — { propertyName, deniedValues, exclusive? }: the item property value must not be one of deniedValues; WHITELISTEDITEMS — { itemIds, exclusive? }: only items whose id appears in itemIds are allowed; BLACKLISTEDITEMS — { itemIds, exclusive? }: items whose id appears in itemIds are blocked. A single-value equality check (formerly a separate BOOLEAN type) is just WHITELIST/BLACKLIST with a one-element allowedValues/deniedValues array. \"exclusive\" (default false) controls how a rule combines with other rules of the same kind and scope: non-exclusive (default) rules are additive — their allowed/denied sets are unioned with other non-exclusive rules for the same property/scope; exclusive rules are authoritative alone — when present, they are evaluated on their own and other rules for the same property/scope are ignored. A missing or empty array means no restrictions apply. Objects are stored as-is without schema validation; entries with an unrecognized type are accepted but have no effect during evaluation.",
+            "description": "Project-level restrictions applied when items are validated at checkout. Array of restriction objects, each identified by a \"type\" field. Supported types, mirrored across property-level and item-level scope, each in a whitelist (allow) and blacklist (deny) form: WHITELIST \u2014 { propertyName, allowedValues, exclusive? }: the item property value must be one of allowedValues; BLACKLIST \u2014 { propertyName, deniedValues, exclusive? }: the item property value must not be one of deniedValues; WHITELISTEDITEMS \u2014 { itemIds, exclusive? }: only items whose id appears in itemIds are allowed; BLACKLISTEDITEMS \u2014 { itemIds, exclusive? }: items whose id appears in itemIds are blocked. A single-value equality check (formerly a separate BOOLEAN type) is just WHITELIST/BLACKLIST with a one-element allowedValues/deniedValues array. \"exclusive\" (default false) controls how a rule combines with other rules of the same kind and scope: non-exclusive (default) rules are additive \u2014 their allowed/denied sets are unioned with other non-exclusive rules for the same property/scope; exclusive rules are authoritative alone \u2014 when present, they are evaluated on their own and other rules for the same property/scope are ignored. A missing or empty array means no restrictions apply. Objects are stored as-is without schema validation; entries with an unrecognized type are accepted but have no effect during evaluation.",
             "example": [
               {
                 "type": "WHITELIST",
@@ -4258,7 +4550,7 @@
             "description": "ERP address id (ADID) of the project."
           },
           "restrictions": {
-            "description": "Project-level restrictions applied when items are validated at checkout. Array of restriction objects, each identified by a \"type\" field. Supported types, mirrored across property-level and item-level scope, each in a whitelist (allow) and blacklist (deny) form: WHITELIST — { propertyName, allowedValues, exclusive? }: the item property value must be one of allowedValues; BLACKLIST — { propertyName, deniedValues, exclusive? }: the item property value must not be one of deniedValues; WHITELISTEDITEMS — { itemIds, exclusive? }: only items whose id appears in itemIds are allowed; BLACKLISTEDITEMS — { itemIds, exclusive? }: items whose id appears in itemIds are blocked. A single-value equality check (formerly a separate BOOLEAN type) is just WHITELIST/BLACKLIST with a one-element allowedValues/deniedValues array. \"exclusive\" (default false) controls how a rule combines with other rules of the same kind and scope: non-exclusive (default) rules are additive — their allowed/denied sets are unioned with other non-exclusive rules for the same property/scope; exclusive rules are authoritative alone — when present, they are evaluated on their own and other rules for the same property/scope are ignored. A missing or empty array means no restrictions apply. Objects are stored as-is without schema validation; entries with an unrecognized type are accepted but have no effect during evaluation.",
+            "description": "Project-level restrictions applied when items are validated at checkout. Array of restriction objects, each identified by a \"type\" field. Supported types, mirrored across property-level and item-level scope, each in a whitelist (allow) and blacklist (deny) form: WHITELIST \u2014 { propertyName, allowedValues, exclusive? }: the item property value must be one of allowedValues; BLACKLIST \u2014 { propertyName, deniedValues, exclusive? }: the item property value must not be one of deniedValues; WHITELISTEDITEMS \u2014 { itemIds, exclusive? }: only items whose id appears in itemIds are allowed; BLACKLISTEDITEMS \u2014 { itemIds, exclusive? }: items whose id appears in itemIds are blocked. A single-value equality check (formerly a separate BOOLEAN type) is just WHITELIST/BLACKLIST with a one-element allowedValues/deniedValues array. \"exclusive\" (default false) controls how a rule combines with other rules of the same kind and scope: non-exclusive (default) rules are additive \u2014 their allowed/denied sets are unioned with other non-exclusive rules for the same property/scope; exclusive rules are authoritative alone \u2014 when present, they are evaluated on their own and other rules for the same property/scope are ignored. A missing or empty array means no restrictions apply. Objects are stored as-is without schema validation; entries with an unrecognized type are accepted but have no effect during evaluation.",
             "example": [
               {
                 "type": "WHITELIST",

@@ -15,32 +15,22 @@ export type InternalServerErrorDto = {
     message: 'Internal Server Error';
 };
 
-/**
- * Discriminator identifying an existing loyalty member.
- */
-export type LoyaltyMemberType = 'MEMBER';
-
-export type LoyaltyMemberDto = {
+export type LoyaltyEligibleDto = {
     /**
-     * Discriminator identifying an existing loyalty member.
+     * Marks a customer who is a loyalty member.
      */
-    type: LoyaltyMemberType;
+    eligible: true;
     /**
      * Loyalty identifier supplied by the tenant. Passed through uninterpreted; may be a phone number, a member number or anything else.
      */
     identifier: string;
 };
 
-/**
- * Discriminator identifying a customer who must never be offered loyalty. This variant has no identifier.
- */
-export type LoyaltyNotEligibleType = 'NOT_ELIGIBLE';
-
 export type LoyaltyNotEligibleDto = {
     /**
-     * Discriminator identifying a customer who must never be offered loyalty. This variant has no identifier.
+     * Marks a customer who must never be offered loyalty. This variant has no identifier.
      */
-    type: LoyaltyNotEligibleType;
+    eligible: false;
 };
 
 export type LicenseDto = {
@@ -141,7 +131,7 @@ export type UpsertCustomerDto = {
      * Default order number the Checkout App pre-fills for this customer.
      */
     orderNumber?: string;
-    loyalty?: LoyaltyMemberDto | LoyaltyNotEligibleDto;
+    loyalty?: LoyaltyEligibleDto | LoyaltyNotEligibleDto;
 };
 
 export type CustomerResponseDto = {
@@ -178,7 +168,7 @@ export type CustomerResponseDto = {
      * Default order number the Checkout App pre-fills for this customer.
      */
     orderNumber?: string;
-    loyalty?: LoyaltyMemberDto | LoyaltyNotEligibleDto;
+    loyalty?: LoyaltyEligibleDto | LoyaltyNotEligibleDto;
     /**
      * Resolved or generated internal customer id.
      */
@@ -187,6 +177,36 @@ export type CustomerResponseDto = {
      * External customer identifier. Defaults to internal id.
      */
     externalCustomerId: string;
+};
+
+export type CreateCustomerRequestDto = {
+    /**
+     * International phone number (E.164).
+     */
+    phone: string;
+    /**
+     * Business unit the customer is created from. The tenant resolves the customer scope from it.
+     */
+    businessUnitId: string;
+    /**
+     * Customer account name.
+     */
+    name?: string;
+    /**
+     * Customer email address.
+     */
+    email?: string;
+    /**
+     * Customer address.
+     */
+    address?: string;
+};
+
+export type CustomerCreationAcceptedDto = {
+    /**
+     * Message from the tenant to show at the till, passed through untouched.
+     */
+    message: string;
 };
 
 export type CustomerSearchItemDto = {
@@ -223,7 +243,7 @@ export type CustomerSearchItemDto = {
      * Default order number the Checkout App pre-fills for this customer.
      */
     orderNumber?: string;
-    loyalty?: LoyaltyMemberDto | LoyaltyNotEligibleDto;
+    loyalty?: LoyaltyEligibleDto | LoyaltyNotEligibleDto;
     /**
      * Resolved or generated internal customer id.
      */
@@ -283,7 +303,7 @@ export type PatchCustomerByIdDto = {
      * Default order number the Checkout App pre-fills for this customer.
      */
     orderNumber?: string;
-    loyalty?: LoyaltyMemberDto | LoyaltyNotEligibleDto;
+    loyalty?: LoyaltyEligibleDto | LoyaltyNotEligibleDto;
     /**
      * Credit limit snapshot.
      */
@@ -740,6 +760,47 @@ export type CreditLimitValidateRequestDto = {
     requestedAmount: number;
 };
 
+export type CreatedCustomerDto = {
+    /**
+     * Customer account name.
+     */
+    name?: string;
+    /**
+     * International phone number (E.164)
+     */
+    phone?: string;
+    address?: string;
+    businessUnitGroup?: string;
+    requireAgent?: boolean;
+    /**
+     * Promotion payloads.
+     */
+    promotions?: Array<{
+        [key: string]: unknown;
+    }>;
+    licenses?: Array<LicenseDto>;
+    /**
+     * Credit limit snapshot.
+     */
+    creditLimit: CreditLimitDto;
+    status?: CustomerStatus;
+    requireProject?: boolean;
+    additionalInputs?: Array<AdditionalInputDto>;
+    /**
+     * Cash or credit account type. Independent of the credit limit; absent means unknown.
+     */
+    customerType?: CustomerType;
+    /**
+     * Default order number the Checkout App pre-fills for this customer.
+     */
+    orderNumber?: string;
+    loyalty?: LoyaltyEligibleDto | LoyaltyNotEligibleDto;
+    /**
+     * Customer identifier in the tenant's system.
+     */
+    externalCustomerId: string;
+};
+
 export type UpsertCustomerByExternalIdDto = {
     /**
      * Customer account name.
@@ -778,7 +839,7 @@ export type UpsertCustomerByExternalIdDto = {
      * Default order number the Checkout App pre-fills for this customer.
      */
     orderNumber?: string;
-    loyalty?: LoyaltyMemberDto | LoyaltyNotEligibleDto;
+    loyalty?: LoyaltyEligibleDto | LoyaltyNotEligibleDto;
 };
 
 export type PatchCustomerByExternalIdDto = {
@@ -810,7 +871,7 @@ export type PatchCustomerByExternalIdDto = {
      * Default order number the Checkout App pre-fills for this customer.
      */
     orderNumber?: string;
-    loyalty?: LoyaltyMemberDto | LoyaltyNotEligibleDto;
+    loyalty?: LoyaltyEligibleDto | LoyaltyNotEligibleDto;
     /**
      * Credit limit snapshot.
      */
@@ -1139,6 +1200,45 @@ export type UpsertCustomerByIdResponses = {
 };
 
 export type UpsertCustomerByIdResponse = UpsertCustomerByIdResponses[keyof UpsertCustomerByIdResponses];
+
+export type CreateCustomerData = {
+    body: CreateCustomerRequestDto;
+    path?: never;
+    query?: never;
+    url: '/customers:create';
+};
+
+export type CreateCustomerErrors = {
+    /**
+     * Invalid params
+     */
+    400: BadRequestDto;
+    /**
+     * Unauthorized
+     */
+    403: unknown;
+    /**
+     * No proxy is configured for the tenant.
+     */
+    412: unknown;
+    /**
+     * Internal server error
+     */
+    500: InternalServerErrorDto;
+    /**
+     * The upstream proxy was unreachable, failed, or returned an invalid/unparseable response.
+     */
+    502: unknown;
+};
+
+export type CreateCustomerError = CreateCustomerErrors[keyof CreateCustomerErrors];
+
+export type CreateCustomerResponses = {
+    200: CustomerResponseDto;
+    202: CustomerCreationAcceptedDto;
+};
+
+export type CreateCustomerResponse = CreateCustomerResponses[keyof CreateCustomerResponses];
 
 export type DeleteCustomerByIdData = {
     body?: never;
@@ -1826,6 +1926,43 @@ export type MockValidateCreditLimitResponses = {
 };
 
 export type MockValidateCreditLimitResponse = MockValidateCreditLimitResponses[keyof MockValidateCreditLimitResponses];
+
+export type MockCreateCustomerData = {
+    body: CreateCustomerRequestDto;
+    path?: never;
+    query?: never;
+    url: '/mock-proxy/customers:create';
+};
+
+export type MockCreateCustomerErrors = {
+    /**
+     * Invalid params
+     */
+    400: BadRequestDto;
+    /**
+     * Unauthorized
+     */
+    403: unknown;
+    /**
+     * Internal server error
+     */
+    500: InternalServerErrorDto;
+};
+
+export type MockCreateCustomerError = MockCreateCustomerErrors[keyof MockCreateCustomerErrors];
+
+export type MockCreateCustomerResponses = {
+    /**
+     * SPI: the customer was created synchronously.
+     */
+    200: CreatedCustomerDto;
+    /**
+     * The creation completes asynchronously; the message is shown at the till.
+     */
+    202: CustomerCreationAcceptedDto;
+};
+
+export type MockCreateCustomerResponse = MockCreateCustomerResponses[keyof MockCreateCustomerResponses];
 
 export type DeleteCustomerByExternalIdData = {
     body: DeleteCustomerByExternalIdDto;

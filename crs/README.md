@@ -5,6 +5,7 @@ The app lets you:
 
 - search customers (unified `query` across name and external id, plus field filters)
 - view and edit a customer, including customer type, order number and loyalty
+- create a customer through the tenant proxy (`POST /customers:create`, 200 stored or 202 accepted)
 - manage related projects (with ADID) and trusted agents (with contact details)
 - try the external-ingest endpoints live
 
